@@ -424,17 +424,28 @@ function entryForm(existing){
     lightsOut:"", onset:"", wake:"", outOfBed:"",
     awakenings:[], naps:[], notes:""
   };
+  const inputs = {};
+  const touched = new Set(existing ? ['lightsOut','onset','wake','outOfBed'].filter(k=>e[k]) : []);
   const card = el("div",{class:"card"});
   card.append(el("h2",null, existing? "Edit night" : "New night",
     el("span",{class:"big"},"Night of ", el("span",{id:"fDateLabel"}, fmtDate(e.date)))));
 
   const warn = el("div",{class:"warnmsg",id:"fWarn"});
 
-  function timeField(labelTxt, key, hint){
-    const wrap = el("div",null,
-      el("label",null,labelTxt),
-      el("input",{type:"time", value:e[key]||"", oninput:ev=>{ e[key]=ev.target.value; showWarnings(); }}));
-    if (hint) wrap.append(el("div",{class:"hint"},hint));
+  function timeField(labelTxt, key, opts){
+    opts = opts||{};
+    const defaultVal = opts.defaultVal||"";
+    if (!existing && !e[key] && defaultVal) e[key] = defaultVal;
+    const inp = el("input",{type:"time", value:e[key]||"",
+      oninput:ev=>{
+        e[key]=ev.target.value; touched.add(key); showWarnings();
+        if (opts.cascadeTo && !touched.has(opts.cascadeTo) && inputs[opts.cascadeTo]){
+          e[opts.cascadeTo]=ev.target.value; inputs[opts.cascadeTo].value=ev.target.value;
+        }
+      }});
+    inputs[key]=inp;
+    const wrap = el("div",null, el("label",null,labelTxt), inp);
+    if (opts.hint) wrap.append(el("div",{class:"hint"},opts.hint));
     return wrap;
   }
   function showWarnings(){
@@ -446,10 +457,10 @@ function entryForm(existing){
     el("label",null,"Date (the evening the night began)"),
     el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}),
     el("div",{class:"grid2"},
-      timeField("Lights out / put in bed","lightsOut"),
-      timeField("Fell asleep (your best guess)","onset"),
-      timeField("Woke up for the day","wake"),
-      timeField("Out of bed / out of crib","outOfBed")
+      timeField("Lights out / put in bed","lightsOut",{defaultVal:"20:00",cascadeTo:"onset"}),
+      timeField("Fell asleep (your best guess)","onset",{defaultVal:"20:00"}),
+      timeField("Woke up for the day","wake",{defaultVal:"06:30",cascadeTo:"outOfBed"}),
+      timeField("Out of bed / out of crib","outOfBed",{defaultVal:"06:30"})
     ),
     warn
   );
