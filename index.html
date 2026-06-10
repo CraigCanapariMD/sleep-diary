@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Pediatric Sleep Diary</title>
+<style>
+:root{
+  --ink:#23244a;        /* deep indigo text */
+  --ink-soft:#5a5b7a;
+  --bg:#f7f7fb;         /* moonlight */
+  --card:#ffffff;
+  --line:#e3e3ee;
+  --night:#3b3e8f;      /* night-sleep shading */
+  --nap:#9b9fe0;        /* nap shading */
+  --accent:#4f52b8;
+  --accent-ink:#ffffff;
+  --good:#1e7b4f;
+  --warn:#a05a00;
+  --bad:#b3261e;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-bottom:84px;
+  -webkit-text-size-adjust:100%;
+}
+header.app{
+  background:var(--ink);color:#fff;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;
+}
+header.app h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
+header.app .sub{font-size:13px;opacity:.78;margin-top:2px}
+main{max-width:680px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:15px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-soft)}
+.card h2 .big{display:block;text-transform:none;letter-spacing:0;color:var(--ink);font-size:18px;margin-top:2px}
+button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:10px 14px}
+.btn-primary{background:var(--accent);color:var(--accent-ink);font-weight:600;width:100%}
+.btn-secondary{background:#ececf6;color:var(--ink);font-weight:600}
+.btn-ghost{background:transparent;color:var(--accent);font-weight:600;padding:8px 10px}
+.btn-danger{background:transparent;color:var(--bad);font-weight:600}
+.btn-row{display:flex;gap:8px;margin-top:10px}
+.btn-row>button{flex:1}
+label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px}
+input[type=date],input[type=time],input[type=number],input[type=text],select,textarea{
+  font:inherit;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+}
+textarea{resize:vertical;min-height:54px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sub-item{border:1px dashed var(--line);border-radius:10px;padding:10px;margin-top:8px;background:#fbfbfe}
+.sub-item .rm{float:right}
+.hint{font-size:12.5px;color:var(--ink-soft);margin-top:4px}
+.warnmsg{font-size:13px;color:var(--warn);margin-top:6px}
+/* entry list */
+.entry-row{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.entry-row:last-child{border-bottom:none}
+.entry-row .d{font-weight:650}
+.entry-row .meta{font-size:13px;color:var(--ink-soft)}
+.entry-row .chev{color:var(--ink-soft)}
+.empty{padding:26px 8px;text-align:center;color:var(--ink-soft);font-size:14.5px}
+/* stats */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#fbfbfe;border:1px solid var(--line);border-radius:10px;padding:10px}
+.stat .v{font-size:20px;font-weight:700;line-height:1.15}
+.stat .v .pm{font-size:12.5px;font-weight:600;color:var(--ink-soft)}
+.stat .k{font-size:12px;color:var(--ink-soft);margin-top:2px}
+table.pernight{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+table.pernight th,table.pernight td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+table.pernight th:first-child,table.pernight td:first-child{text-align:left}
+table.pernight th{color:var(--ink-soft);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* chart */
+.chart-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}
+.legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+/* tabs */
+nav.tabs{
+  position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;padding:6px 4px calc(env(safe-area-inset-bottom,0px) + 6px);
+  z-index:20;
+}
+nav.tabs button{background:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-soft);font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:10px}
+nav.tabs button.active{color:var(--accent)}
+nav.tabs button svg{width:22px;height:22px}
+.view{display:none}
+.view.active{display:block}
+.toast{
+  position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:40;white-space:nowrap;
+}
+.toast.show{opacity:1}
+pre.export{
+  background:#fbfbfe;border:1px solid var(--line);border-radius:10px;padding:10px;
+  font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;
+}
+.pill{display:inline-block;background:#ececf6;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="app">
+  <h1>Pediatric Sleep Diary</h1>
+  <div class="sub" id="hdrSub">Track your child's sleep, night by night</div>
+</header>
+<main>
+  <div id="view-diary" class="view active"></div>
+  <div id="view-chart" class="view"></div>
+  <div id="view-summary" class="view"></div>
+  <div id="view-share" class="view"></div>
+</main>
+<nav class="tabs">
+  <button data-tab="diary" class="active" aria-label="Diary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 4v13a3 3 0 0 0 3 3"/><path d="M9 9h6M9 13h6"/></svg>
+    Diary</button>
+  <button data-tab="chart" aria-label="Chart">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="3" rx="1"/><rect x="6" y="11" width="14" height="3" rx="1"/><rect x="4" y="17" width="12" height="3" rx="1"/></svg>
+    Chart</button>
+  <button data-tab="summary" aria-label="Summary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+    Summary</button>
+  <button data-tab="share" aria-label="Share">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+    Share</button>
+</nav>
+<div class="toast" id="toast"></div>
+<script>
+"use strict";
+
+/* ============================================================
+   Pediatric Sleep Diary — single-file web app
+   Data model: one entry per calendar day D.
+     - naps: naps taken during day D (before that night's bedtime)
+     - night: the night of D (evening D -> morning D+1)
+   All clock times are stored "HH:MM" (24h) and mapped onto a
+   noon-to-noon axis: minutes-from-noon (mfn), 0 = 12:00 PM day D,
+   1439 = 11:59 AM day D+1. Normal sleep never wraps this axis,
+   so plain arithmetic means/SDs are valid.
+   ============================================================ */
+
+/* ---------- storage adapter ----------
+   Inside Claude artifacts, window.storage exists (async KV).
+   Deployed on the open web it does not; fall back to localStorage. */
+const KV = {
+  async get(k){
+    if (window.storage && window.storage.get){
+      try { const r = await window.storage.get(k); return r ? r.value : null; }
+      catch(e){ return null; }
+    }
+    try { return window.localStorage.getItem(k); } catch(e){ return null; }
+  },
+  async set(k,v){
+    if (window.storage && window.storage.set){
+      try { await window.storage.set(k,v); } catch(e){ console.error("storage.set",e); }
+      return;
+    }
+    try { window.localStorage.setItem(k,v); } catch(e){ console.error("localStorage.set",e); }
+  }
+};
+const STORE_KEY = "peds-sleep-diary-v1";
+
+/* ---------- state ---------- */
+let state = { settings:{ initials:"" }, entries:{} };
+// entries: { "2026-06-09": {date, lightsOut, onset, wake, outOfBed,
+//            awakenings:[{time,dur,help}], naps:[{inBed,asleep,woke,out}], notes} }
+
+async function loadState(){
+  const raw = await KV.get(STORE_KEY);
+  if (raw){ try { state = JSON.parse(raw); } catch(e){} }
+  if (!state.settings) state.settings = { initials:"" };
+  if (!state.entries) state.entries = {};
+}
+let saveTimer = null;
+function saveState(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{ KV.set(STORE_KEY, JSON.stringify(state)); }, 250);
+}
+
+/* ---------- time helpers ---------- */
+function hm(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }           // minutes from midnight
+function mfn(t){ return ((hm(t) - 720) + 1440) % 1440; }                          // minutes from noon
+function mfnDay(t){ return hm(t) < 720 ? hm(t)+1440 : hm(t); }                    // unused guard
+function clock(mfnVal){                                                            // mfn -> "h:mm AM/PM"
+  let m = ((Math.round(mfnVal) % 1440)+1440)%1440;
+  let mm = (m + 720) % 1440;
+  let h = Math.floor(mm/60), min = mm%60;
+  const ap = h >= 12 ? "PM" : "AM";
+  let h12 = h % 12; if (h12===0) h12 = 12;
+  return h12 + ":" + String(min).padStart(2,"0") + " " + ap;
+}
+function clockFromHM(t){ return clock(mfn(t)); }
+function dur(mins){
+  mins = Math.round(mins);
+  if (mins < 0) mins = 0;
+  const h = Math.floor(mins/60), m = mins%60;
+  if (h===0) return m + " min";
+  return h + " h " + (m? m+" min" : "");
+}
+function isoToday(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function fmtDate(iso){
+  const [y,mo,d]=iso.split("-").map(Number);
+  const dt = new Date(y,mo-1,d);
+  return dt.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"});
+}
+function fmtDateShort(iso){
+  const [y,mo,d]=iso.split("-").map(Number);
+  return new Date(y,mo-1,d).toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
+}
+function mean(a){ return a.length ? a.reduce((s,x)=>s+x,0)/a.length : NaN; }
+function sd(a){
+  if (a.length < 2) return NaN;
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/(a.length-1));
+}
+
+/* ---------- per-night computation ---------- */
+const HELP_LABELS = {
+  none:"No help needed", room:"Comforted in room", fed:"Fed",
+  bed:"Brought to parents' bed", other:"Other"
+};
+function computeNight(e){
+  const out = { valid:false, warnings:[] };
+  if (!(e.lightsOut && e.onset && e.wake && e.outOfBed)) return out;
+  const lo = mfn(e.lightsOut), on = mfn(e.onset), wk = mfn(e.wake), ob = mfn(e.outOfBed);
+  if (on < lo) out.warnings.push("Sleep onset is before lights out.");
+  if (wk <= on) out.warnings.push("Morning wake time is not after sleep onset.");
+  if (ob < wk) out.warnings.push("Out of bed is before final wake time.");
+  const waso = (e.awakenings||[]).reduce((s,a)=> s + (Number(a.dur)||0), 0);
+  const nAw = (e.awakenings||[]).length;
+  const nHelp = (e.awakenings||[]).filter(a=> a.help && a.help!=="none").length;
+  const tib = ob - lo;
+  const sol = on - lo;
+  const spt = wk - on;                      // sleep period time
+  const tst = Math.max(0, spt - waso);      // night total sleep time
+  const se  = tib > 0 ? (tst / tib) * 100 : NaN;
+  const mid = on + spt/2;                   // midsleep, mfn
+  // naps
+  let napSleep = 0, napInBed = 0, nNaps = 0;
+  (e.naps||[]).forEach(n=>{
+    if (n.asleep && n.woke){
+      const s = mfn(n.asleep), w = mfn(n.woke);
+      if (w > s){ napSleep += (w - s); nNaps++; }
+    }
+    if (n.inBed && n.out){
+      const i = mfn(n.inBed), o = mfn(n.out);
+      if (o > i) napInBed += (o - i);
+    }
+  });
+  Object.assign(out,{ valid:true, lo,on,wk,ob, tib,sol,spt,tst,se,waso,nAw,nHelp,mid,
+                      napSleep, napInBed, nNaps, tst24: tst + napSleep });
+  return out;
+}
+
+function sortedEntries(){
+  return Object.values(state.entries).sort((a,b)=> a.date < b.date ? -1 : 1);
+}
+
+/* ---------- summary across nights ---------- */
+function computeSummary(){
+  const rows = sortedEntries().map(e=>({e, c:computeNight(e)})).filter(r=>r.c.valid);
+  if (!rows.length) return null;
+  const g = k => rows.map(r=>r.c[k]);
+  const s = {
+    n: rows.length,
+    first: rows[0].e.date, last: rows[rows.length-1].e.date,
+    lightsOut:{ m:mean(g("lo")), sd:sd(g("lo")) },
+    onset:{ m:mean(g("on")), sd:sd(g("on")) },
+    wake:{ m:mean(g("wk")), sd:sd(g("wk")) },
+    outOfBed:{ m:mean(g("ob")), sd:sd(g("ob")) },
+    mid:{ m:mean(g("mid")), sd:sd(g("mid")) },
+    sol:{ m:mean(g("sol")), sd:sd(g("sol")) },
+    tib:{ m:mean(g("tib")) },
+    tst:{ m:mean(g("tst")), sd:sd(g("tst")) },
+    se:{ m:mean(g("se")), sd:sd(g("se")) },
+    waso:{ m:mean(g("waso")) },
+    nAw:{ m:mean(g("nAw")), tot: g("nAw").reduce((a,b)=>a+b,0) },
+    nHelp:{ m:mean(g("nHelp")), tot: g("nHelp").reduce((a,b)=>a+b,0) },
+    napSleep:{ m:mean(g("napSleep")) },
+    nNaps:{ m:mean(g("nNaps")) },
+    tst24:{ m:mean(g("tst24")) },
+    rows
+  };
+  return s;
+}
+
+/* ---------- sleep/wake raster + Sleep Regularity Index ----------
+   Build a 5-min-resolution sleep(1)/wake(0) vector per diary day
+   (noon->noon, 288 epochs), from night sleep minus awakenings, plus naps.
+   SRI compares consecutive calendar days epoch-by-epoch:
+   SRI = -100 + 200 * P(same state at same clock time on consecutive days). */
+const EPOCH = 5, NEP = 1440/EPOCH;
+function rasterFor(e){
+  const c = computeNight(e);
+  if (!c.valid) return null;
+  const v = new Array(NEP).fill(0);
+  const set = (a,b,val)=>{
+    let i0 = Math.max(0, Math.floor(a/EPOCH)), i1 = Math.min(NEP, Math.ceil(b/EPOCH));
+    for (let i=i0;i<i1;i++) v[i]=val;
+  };
+  set(c.on, c.wk, 1);
+  (e.awakenings||[]).forEach(a=>{
+    if (a.time && a.dur){ const t = mfn(a.time); set(t, t + Number(a.dur), 0); }
+  });
+  (e.naps||[]).forEach(n=>{
+    if (n.asleep && n.woke){ const s=mfn(n.asleep), w=mfn(n.woke); if (w>s) set(s,w,1); }
+  });
+  return v;
+}
+function addDays(iso, k){
+  const [y,m,d] = iso.split("-").map(Number);
+  const dt = new Date(y, m-1, d + k);
+  return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
+}
+function computeSRI(){
+  const byDate = {};
+  sortedEntries().forEach(e=>{ const r = rasterFor(e); if (r) byDate[e.date] = r; });
+  let same=0, total=0;
+  Object.keys(byDate).forEach(d=>{
+    const nx = byDate[addDays(d,1)];
+    if (!nx) return;
+    const cur = byDate[d];
+    for (let i=0;i<NEP;i++){ if (cur[i]===nx[i]) same++; total++; }
+  });
+  if (!total) return null;
+  return -100 + 200*(same/total);
+}
+/* ============================================================
+   UI
+   ============================================================ */
+const $ = sel => document.querySelector(sel);
+function el(tag, attrs, ...kids){
+  const n = document.createElement(tag);
+  if (attrs) for (const k in attrs){
+    if (k==="class") n.className = attrs[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else if (k==="html") n.innerHTML = attrs[k];
+    else n.setAttribute(k, attrs[k]);
+  }
+  kids.flat().forEach(k=>{ if (k==null) return; n.append(k.nodeType? k : document.createTextNode(k)); });
+  return n;
+}
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+/* ---------- tabs ---------- */
+document.querySelectorAll("nav.tabs button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("nav.tabs button").forEach(x=>x.classList.toggle("active", x===b));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    $("#view-"+b.dataset.tab).classList.add("active");
+    render(b.dataset.tab);
+    window.scrollTo(0,0);
+  });
+});
+
+function render(tab){
+  if (!tab) tab = document.querySelector("nav.tabs button.active").dataset.tab;
+  $("#hdrSub").textContent = headerSub();
+  if (tab==="diary") renderDiary();
+  if (tab==="chart") renderChart();
+  if (tab==="summary") renderSummary();
+  if (tab==="share") renderShare();
+}
+function headerSub(){
+  const n = sortedEntries().length;
+  const who = state.settings.initials ? "Child: "+state.settings.initials+" · " : "";
+  return who + (n ? n + (n===1?" night":" nights") + " recorded" : "Track your child's sleep, night by night");
+}
+
+/* ---------- diary view ---------- */
+let editing = null; // date being edited, or "__new__"
+
+function renderDiary(){
+  const v = $("#view-diary"); v.innerHTML = "";
+  if (editing){ v.append(entryForm(editing === "__new__" ? null : state.entries[editing])); return; }
+
+  // settings card
+  v.append(el("div",{class:"card"},
+    el("h2",null,"Setup"),
+    el("label",null,"Child's initials (no full names — this keeps the diary private)"),
+    el("input",{type:"text", maxlength:"6", value:state.settings.initials||"",
+      oninput:e=>{ state.settings.initials = e.target.value.trim(); saveState(); $("#hdrSub").textContent = headerSub(); }}),
+    el("div",{class:"hint"},"Everything you enter stays on this device until you choose to share it.")
+  ));
+
+  v.append(el("button",{class:"btn-primary",onclick:()=>{ editing="__new__"; renderDiary(); }},"+ Add last night"));
+
+  const list = el("div",{class:"card",style:"margin-top:12px"});
+  list.append(el("h2",null,"Recorded nights"));
+  const entries = sortedEntries().slice().reverse();
+  if (!entries.length){
+    list.append(el("div",{class:"empty"},"No nights yet. Each morning, tap “Add last night” — it takes about a minute."));
+  } else {
+    entries.forEach(e=>{
+      const c = computeNight(e);
+      const meta = c.valid
+        ? clockFromHM(e.lightsOut)+" → "+clockFromHM(e.outOfBed)+" · slept "+dur(c.tst)
+          + (c.nAw? " · "+c.nAw+" waking"+(c.nAw>1?"s":"") : "")
+          + (e.naps && e.naps.length ? " · "+e.naps.length+" nap"+(e.naps.length>1?"s":"") : "")
+        : "Incomplete entry";
+      list.append(el("div",{class:"entry-row",onclick:()=>{ editing=e.date; renderDiary(); }},
+        el("div",null, el("div",{class:"d"},"Night of "+fmtDate(e.date)), el("div",{class:"meta"},meta)),
+        el("div",{class:"chev"},"›")
+      ));
+    });
+  }
+  v.append(list);
+}
+
+/* ---------- entry form ---------- */
+function entryForm(existing){
+  const e = existing ? JSON.parse(JSON.stringify(existing)) : {
+    date: addDays(isoToday(), -1),  // "last night" = yesterday's date
+    lightsOut:"", onset:"", wake:"", outOfBed:"",
+    awakenings:[], naps:[], notes:""
+  };
+  const card = el("div",{class:"card"});
+  card.append(el("h2",null, existing? "Edit night" : "New night",
+    el("span",{class:"big"},"Night of ", el("span",{id:"fDateLabel"}, fmtDate(e.date)))));
+
+  const warn = el("div",{class:"warnmsg",id:"fWarn"});
+
+  function timeField(labelTxt, key, hint){
+    const wrap = el("div",null,
+      el("label",null,labelTxt),
+      el("input",{type:"time", value:e[key]||"", oninput:ev=>{ e[key]=ev.target.value; showWarnings(); }}));
+    if (hint) wrap.append(el("div",{class:"hint"},hint));
+    return wrap;
+  }
+  function showWarnings(){
+    const c = computeNight(e);
+    warn.textContent = c.valid && c.warnings.length ? "Check times: " + c.warnings.join(" ") : "";
+  }
+
+  card.append(
+    el("label",null,"Date (the evening the night began)"),
+    el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}),
+    el("div",{class:"grid2"},
+      timeField("Lights out / put in bed","lightsOut"),
+      timeField("Fell asleep (your best guess)","onset"),
+      timeField("Woke up for the day","wake"),
+      timeField("Out of bed / out of crib","outOfBed")
+    ),
+    warn
+  );
+
+  /* awakenings */
+  const awBox = el("div");
+  function awRow(a, idx){
+    return el("div",{class:"sub-item"},
+      el("button",{class:"btn-danger rm",onclick:()=>{ e.awakenings.splice(idx,1); redrawAw(); }},"Remove"),
+      el("div",{class:"grid2"},
+        el("div",null, el("label",null,"Woke at"),
+          el("input",{type:"time",value:a.time||"",oninput:ev=>a.time=ev.target.value})),
+        el("div",null, el("label",null,"Awake for (minutes)"),
+          el("input",{type:"number",min:"0",step:"1",inputmode:"numeric",value:a.dur||"",oninput:ev=>a.dur=ev.target.value}))
+      ),
+      el("label",null,"Did you go in / help?"),
+      el("select",{onchange:ev=>a.help=ev.target.value},
+        Object.keys(HELP_LABELS).map(k=> el("option",{value:k, ...(a.help===k?{selected:""}:{})}, HELP_LABELS[k])))
+    );
+  }
+  function redrawAw(){
+    awBox.innerHTML="";
+    e.awakenings.forEach((a,i)=> awBox.append(awRow(a,i)));
+  }
+  redrawAw();
+  card.append(
+    el("label",{style:"margin-top:14px"},"Night awakenings"),
+    awBox,
+    el("button",{class:"btn-ghost",onclick:()=>{ e.awakenings.push({time:"",dur:"",help:"none"}); redrawAw(); }},"+ Add an awakening")
+  );
+
+  /* naps (during the day before this night) */
+  const napBox = el("div");
+  function napRow(n, idx){
+    return el("div",{class:"sub-item"},
+      el("button",{class:"btn-danger rm",onclick:()=>{ e.naps.splice(idx,1); redrawNaps(); }},"Remove"),
+      el("div",{class:"grid2"},
+        el("div",null, el("label",null,"Into bed/crib"), el("input",{type:"time",value:n.inBed||"",oninput:ev=>n.inBed=ev.target.value})),
+        el("div",null, el("label",null,"Fell asleep"), el("input",{type:"time",value:n.asleep||"",oninput:ev=>n.asleep=ev.target.value})),
+        el("div",null, el("label",null,"Woke up"), el("input",{type:"time",value:n.woke||"",oninput:ev=>n.woke=ev.target.value})),
+        el("div",null, el("label",null,"Out of bed/crib"), el("input",{type:"time",value:n.out||"",oninput:ev=>n.out=ev.target.value}))
+      )
+    );
+  }
+  function redrawNaps(){
+    napBox.innerHTML="";
+    e.naps.forEach((n,i)=> napBox.append(napRow(n,i)));
+  }
+  redrawNaps();
+  card.append(
+    el("label",{style:"margin-top:14px"},"Naps that day (before this bedtime)"),
+    napBox,
+    el("button",{class:"btn-ghost",onclick:()=>{ e.naps.push({inBed:"",asleep:"",woke:"",out:""}); redrawNaps(); }},"+ Add a nap")
+  );
+
+  card.append(
+    el("label",{style:"margin-top:14px"},"Notes (illness, travel, anything unusual)"),
+    el("textarea",{oninput:ev=>e.notes=ev.target.value}, e.notes||"")
+  );
+
+  const btns = el("div",{class:"btn-row"});
+  btns.append(el("button",{class:"btn-secondary",onclick:()=>{ editing=null; renderDiary(); }},"Cancel"));
+  if (existing) btns.append(el("button",{class:"btn-danger",onclick:()=>{
+      if (confirm("Delete this night?")){ delete state.entries[existing.date]; saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub(); }
+    }},"Delete"));
+  btns.append(el("button",{class:"btn-primary",onclick:()=>{
+    if (!e.date){ toast("Pick a date"); return; }
+    if (!(e.lightsOut && e.onset && e.wake && e.outOfBed)){ toast("Fill in the four main times"); return; }
+    e.awakenings = e.awakenings.filter(a=>a.time && a.dur!=="");
+    e.naps = e.naps.filter(n=>n.asleep && n.woke);
+    if (existing && existing.date !== e.date) delete state.entries[existing.date];
+    state.entries[e.date] = e;
+    saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub();
+    toast("Night saved");
+  }},"Save night"));
+  card.append(btns);
+  return card;
+}
+/* ---------- chart view (Mindell-style shaded log, noon -> noon) ---------- */
+function renderChart(){
+  const v = $("#view-chart"); v.innerHTML = "";
+  const entries = sortedEntries();
+  const card = el("div",{class:"card"});
+  card.append(el("h2",null,"Sleep chart", el("span",{class:"big"},"Each row is one day, noon to noon")));
+  if (!entries.length){
+    card.append(el("div",{class:"empty"},"Add a night in the Diary tab to see the chart."));
+    v.append(card); return;
+  }
+  const LEFT = 64, RIGHT = 10, TOP = 26, ROWH = 26, GAP = 6;
+  const W = 760, plotW = W - LEFT - RIGHT;
+  const H = TOP + entries.length*(ROWH+GAP) + 14;
+  const x = m => LEFT + (m/1440)*plotW;
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS,"svg");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.style.maxWidth = "none";
+  function S(tag, attrs, text){
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text!=null) n.textContent = text;
+    return n;
+  }
+  // hour grid + labels every 2h
+  const labels = ["Noon","2p","4p","6p","8p","10p","Mid","2a","4a","6a","8a","10a","Noon"];
+  for (let i=0;i<=12;i++){
+    const gx = x(i*120);
+    svg.append(S("line",{x1:gx,y1:TOP-6,x2:gx,y2:H-10,stroke:"#e3e3ee","stroke-width":1}));
+    svg.append(S("text",{x:gx,y:TOP-12,"text-anchor":"middle","font-size":10.5,fill:"#5a5b7a"},labels[i]));
+  }
+  entries.forEach((e,ri)=>{
+    const y = TOP + ri*(ROWH+GAP);
+    const c = computeNight(e);
+    svg.append(S("text",{x:LEFT-8,y:y+ROWH/2+4,"text-anchor":"end","font-size":11,fill:"#23244a","font-weight":600}, fmtDateShort(e.date)));
+    svg.append(S("rect",{x:LEFT,y:y,width:plotW,height:ROWH,fill:"#fbfbfe",stroke:"#e3e3ee"}));
+    if (!c.valid) return;
+    // naps
+    (e.naps||[]).forEach(n=>{
+      if (!(n.asleep && n.woke)) return;
+      const s=mfn(n.asleep), w=mfn(n.woke); if (w<=s) return;
+      svg.append(S("rect",{x:x(s),y:y+3,width:x(w)-x(s),height:ROWH-6,fill:"#9b9fe0",rx:2}));
+    });
+    // night sleep: onset -> wake, awakenings carved out
+    let segs = [[c.on, c.wk]];
+    (e.awakenings||[]).forEach(a=>{
+      if (!(a.time && a.dur)) return;
+      const t = mfn(a.time), t2 = t + Number(a.dur);
+      segs = segs.flatMap(([s0,s1])=>{
+        if (t2<=s0 || t>=s1) return [[s0,s1]];
+        const out=[]; if (t>s0) out.push([s0,t]); if (t2<s1) out.push([t2,s1]); return out;
+      });
+    });
+    segs.forEach(([s0,s1])=>{
+      if (s1>s0) svg.append(S("rect",{x:x(s0),y:y+3,width:x(s1)-x(s0),height:ROWH-6,fill:"#3b3e8f",rx:2}));
+    });
+    // arrows: down = into bed (lights out, nap in-bed), up = out of bed
+    function arrow(m, up){
+      const ax = x(m), y0 = up ? y+ROWH-2 : y+2, y1 = up ? y+6 : y+ROWH-6;
+      const g = S("g",{stroke:"#23244a","stroke-width":1.6,fill:"none"});
+      g.append(S("line",{x1:ax,y1:y0,x2:ax,y2:y1}));
+      const tip = up ? y+6 : y+ROWH-6, d = up ? 4 : -4;
+      g.append(S("line",{x1:ax-3,y1:tip+d,x2:ax,y2:tip}));
+      g.append(S("line",{x1:ax+3,y1:tip+d,x2:ax,y2:tip}));
+      return g;
+    }
+    svg.append(arrow(c.lo,false), arrow(c.ob,true));
+    (e.naps||[]).forEach(n=>{
+      if (n.inBed) svg.append(arrow(mfn(n.inBed),false));
+      if (n.out) svg.append(arrow(mfn(n.out),true));
+    });
+  });
+  const wrap = el("div",{class:"chart-wrap"}); wrap.append(svg);
+  card.append(wrap);
+  card.append(el("div",{class:"legend"},
+    el("span",null, el("span",{class:"sw",style:"background:#3b3e8f"}),"Night sleep"),
+    el("span",null, el("span",{class:"sw",style:"background:#9b9fe0"}),"Nap"),
+    el("span",null,"↓ into bed · ↑ out of bed")
+  ));
+  v.append(card);
+}
+
+/* ---------- summary view ---------- */
+function pmStat(v, label, sdv, fmt){
+  const f = fmt || dur;
+  return el("div",{class:"stat"},
+    el("div",{class:"v"}, isNaN(v)? "—" : f(v),
+      (sdv!=null && !isNaN(sdv)) ? el("span",{class:"pm"}," ± "+Math.round(sdv)+" min") : null),
+    el("div",{class:"k"},label));
+}
+function renderSummary(){
+  const v = $("#view-summary"); v.innerHTML = "";
+  const s = computeSummary();
+  const card = el("div",{class:"card"});
+  card.append(el("h2",null,"Summary", s? el("span",{class:"big"}, s.n+" nights · "+fmtDate(s.first)+" – "+fmtDate(s.last)) : null));
+  if (!s){ card.append(el("div",{class:"empty"},"No complete nights yet.")); v.append(card); return; }
+  const sri = computeSRI();
+  card.append(el("div",{class:"stat-grid"},
+    pmStat(s.lightsOut.m,"Mean lights out",s.lightsOut.sd,clock),
+    pmStat(s.onset.m,"Mean sleep onset",s.onset.sd,clock),
+    pmStat(s.wake.m,"Mean wake time",s.wake.sd,clock),
+    pmStat(s.mid.m,"Mean midsleep",s.mid.sd,clock),
+    pmStat(s.sol.m,"Mean sleep latency",null),
+    pmStat(s.tst.m,"Mean night sleep",s.tst.sd),
+    pmStat(s.se.m,"Mean sleep efficiency",null,x=>x.toFixed(0)+"%"),
+    pmStat(s.waso.m,"Mean WASO / night",null),
+    el("div",{class:"stat"}, el("div",{class:"v"}, s.nAw.m.toFixed(1)), el("div",{class:"k"},"Awakenings per night ("+s.nAw.tot+" total)")),
+    el("div",{class:"stat"}, el("div",{class:"v"}, s.nHelp.m.toFixed(1)), el("div",{class:"k"},"Parent interventions per night ("+s.nHelp.tot+" total)")),
+    pmStat(s.napSleep.m,"Mean nap sleep / day",null),
+    pmStat(s.tst24.m,"Mean 24-hour sleep",null),
+    el("div",{class:"stat"}, el("div",{class:"v"}, sri==null? "—" : sri.toFixed(0)), el("div",{class:"k"},"Sleep Regularity Index (0–100; needs consecutive days)"))
+  ));
+  card.append(el("div",{class:"hint",style:"margin-top:8px"},
+    "Bedtime/onset/wake variability is shown as ± SD. Sleep efficiency = night sleep ÷ time in bed."));
+  v.append(card);
+
+  // per-night table
+  const tcard = el("div",{class:"card"});
+  tcard.append(el("h2",null,"Night by night"));
+  const tbl = el("table",{class:"pernight"});
+  tbl.append(el("tr",null, ["Date","Lights out","Asleep","Wake","Out","TST","SE","WASO","Wakes","Helped","Naps"].map(h=>el("th",null,h))));
+  s.rows.forEach(r=>{
+    tbl.append(el("tr",null,
+      el("td",null,fmtDateShort(r.e.date)),
+      el("td",null,clock(r.c.lo)), el("td",null,clock(r.c.on)),
+      el("td",null,clock(r.c.wk)), el("td",null,clock(r.c.ob)),
+      el("td",null,dur(r.c.tst)), el("td",null,isNaN(r.c.se)?"—":r.c.se.toFixed(0)+"%"),
+      el("td",null,r.c.waso? dur(r.c.waso):"0"),
+      el("td",null,String(r.c.nAw)), el("td",null,String(r.c.nHelp)),
+      el("td",null, r.c.nNaps? r.c.nNaps+" ("+dur(r.c.napSleep)+")" : "0")
+    ));
+  });
+  const sc = el("div",{class:"scrollx"}); sc.append(tbl); tcard.append(sc);
+  v.append(tcard);
+}
+
+/* ---------- share view ---------- */
+function buildTextReport(){
+  const s = computeSummary();
+  if (!s) return "No complete nights recorded yet.";
+  const sri = computeSRI();
+  const who = state.settings.initials || "—";
+  const L = [];
+  L.push("PEDIATRIC SLEEP DIARY — SUMMARY");
+  L.push("Child: "+who+"   Nights: "+s.n+"   "+fmtDate(s.first)+" to "+fmtDate(s.last));
+  L.push("");
+  L.push("AVERAGES (± SD where shown)");
+  L.push("  Lights out:        "+clock(s.lightsOut.m)+(isNaN(s.lightsOut.sd)?"":"  (SD "+Math.round(s.lightsOut.sd)+" min)"));
+  L.push("  Sleep onset:       "+clock(s.onset.m)+(isNaN(s.onset.sd)?"":"  (SD "+Math.round(s.onset.sd)+" min)"));
+  L.push("  Sleep latency:     "+dur(s.sol.m));
+  L.push("  Wake time:         "+clock(s.wake.m)+(isNaN(s.wake.sd)?"":"  (SD "+Math.round(s.wake.sd)+" min)"));
+  L.push("  Midsleep:          "+clock(s.mid.m)+(isNaN(s.mid.sd)?"":"  (SD "+Math.round(s.mid.sd)+" min)"));
+  L.push("  Night sleep (TST): "+dur(s.tst.m));
+  L.push("  Time in bed:       "+dur(s.tib.m));
+  L.push("  Sleep efficiency:  "+(isNaN(s.se.m)?"—":s.se.m.toFixed(0)+"%"));
+  L.push("  WASO per night:    "+dur(s.waso.m));
+  L.push("  Awakenings/night:  "+s.nAw.m.toFixed(1)+"  ("+s.nAw.tot+" total)");
+  L.push("  Parent help/night: "+s.nHelp.m.toFixed(1)+"  ("+s.nHelp.tot+" total)");
+  L.push("  Nap sleep per day: "+dur(s.napSleep.m)+"  ("+s.nNaps.m.toFixed(1)+" naps/day)");
+  L.push("  24-h total sleep:  "+dur(s.tst24.m));
+  if (sri!=null) L.push("  Sleep Regularity Index: "+sri.toFixed(0)+" / 100");
+  L.push("");
+  L.push("NIGHT BY NIGHT");
+  L.push("  Date   LightsOut Asleep  Wake   OutBed  TST    SE   WASO Wakes Help Naps");
+  s.rows.forEach(r=>{
+    const c=r.c;
+    const pad=(t,n)=>String(t).padEnd(n);
+    L.push("  "+pad(fmtDateShort(r.e.date),7)+pad(clock(c.lo),10)+pad(clock(c.on),8)+pad(clock(c.wk),7)
+      +pad(clock(c.ob),8)+pad(dur(c.tst),7)+pad(isNaN(c.se)?"—":c.se.toFixed(0)+"%",5)
+      +pad(c.waso? c.waso+"m":"0",5)+pad(c.nAw,6)+pad(c.nHelp,5)
+      +(c.nNaps? c.nNaps+" ("+dur(c.napSleep)+")":"0"));
+  });
+  const noted = s.rows.filter(r=>r.e.notes);
+  if (noted.length){
+    L.push(""); L.push("NOTES");
+    noted.forEach(r=>L.push("  "+fmtDateShort(r.e.date)+": "+r.e.notes));
+  }
+  L.push("");
+  L.push("Generated by Pediatric Sleep Diary (data entered by parent/caregiver).");
+  return L.join("\n");
+}
+function buildCSV(){
+  const rows = sortedEntries();
+  const head = ["date","lights_out","sleep_onset","final_wake","out_of_bed",
+    "sol_min","tst_min","tib_min","se_pct","waso_min","n_awakenings","n_parent_interventions",
+    "awakenings_detail","n_naps","nap_sleep_min","naps_detail","notes"];
+  const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
+  const out = [head.join(",")];
+  rows.forEach(e=>{
+    const c = computeNight(e);
+    const awd = (e.awakenings||[]).map(a=>a.time+" ("+a.dur+"m, "+(HELP_LABELS[a.help]||a.help)+")").join("; ");
+    const npd = (e.naps||[]).map(n=>(n.inBed||"")+"/"+(n.asleep||"")+"-"+(n.woke||"")+"/"+(n.out||"")).join("; ");
+    out.push([e.date, e.lightsOut, e.onset, e.wake, e.outOfBed,
+      c.valid?Math.round(c.sol):"", c.valid?Math.round(c.tst):"", c.valid?Math.round(c.tib):"",
+      c.valid&&!isNaN(c.se)?c.se.toFixed(1):"", c.valid?Math.round(c.waso):"",
+      c.valid?c.nAw:"", c.valid?c.nHelp:"",
+      awd, (e.naps||[]).length, c.valid?Math.round(c.napSleep):"", npd, e.notes||""
+    ].map(esc).join(","));
+  });
+  return out.join("\n");
+}
+function renderShare(){
+  const v = $("#view-share"); v.innerHTML = "";
+  const card = el("div",{class:"card"});
+  card.append(el("h2",null,"Share with your sleep clinic"));
+  card.append(el("div",{class:"hint",style:"margin:0 0 10px"},
+    "Copy the summary below and paste it into a MyChart message to your child's clinic, or attach the spreadsheet file to an email. Your diary never leaves this device until you do this."));
+  const txt = buildTextReport();
+  const pre = el("pre",{class:"export"}, txt);
+  card.append(pre);
+  card.append(el("div",{class:"btn-row"},
+    el("button",{class:"btn-primary",onclick:async()=>{
+      try { await navigator.clipboard.writeText(buildTextReport()); toast("Copied — paste into MyChart"); }
+      catch(err){
+        const r = document.createRange(); r.selectNodeContents(pre);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        toast("Select-all done — copy manually");
+      }
+    }},"Copy summary"),
+    el("button",{class:"btn-secondary",onclick:()=>{
+      const blob = new Blob([buildCSV()],{type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sleep-diary-"+(state.settings.initials||"child")+"-"+isoToday()+".csv";
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    }},"Download CSV")
+  ));
+  v.append(card);
+
+  /* ---- backup card ---- */
+  const bk = el("div",{class:"card"});
+  bk.append(el("h2",null,"Back up your diary"));
+  bk.append(el("div",{class:"hint",style:"margin:0 0 10px"},
+    "The diary lives only on this device. A backup protects it if the browser's data is cleared. Backups stay in YOUR hands — a file you keep, or a file in your own Google Drive."));
+  const fileBtns = el("div",{class:"btn-row"},
+    el("button",{class:"btn-secondary",onclick:()=>{
+      const blob = new Blob([backupPayload()],{type:"application/json"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "sleep-diary-backup-"+isoToday()+".json";
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+      toast("Backup file saved");
+    }},"Save backup file"),
+    el("button",{class:"btn-secondary",onclick:()=>{ $("#restoreFile").click(); }},"Restore from file")
+  );
+  const fileInput = el("input",{type:"file",id:"restoreFile",accept:".json,application/json",style:"display:none",
+    onchange:async ev=>{
+      const f = ev.target.files[0]; ev.target.value="";
+      if (!f) return;
+      try{
+        const obj = JSON.parse(await f.text());
+        const {added,updated} = applyBackup(obj);
+        render(); toast("Restored: "+added+" added, "+updated+" updated");
+      }catch(err){ alert(err.message || "That file could not be read."); }
+    }});
+  bk.append(fileBtns, fileInput);
+
+  if (GOOGLE_CLIENT_ID){
+    const last = state.settings.lastDriveBackup
+      ? "Last Drive backup: "+new Date(state.settings.lastDriveBackup).toLocaleString()
+      : "No Drive backup yet.";
+    bk.append(el("div",{class:"hint",style:"margin-top:12px"}, last));
+    bk.append(el("div",{class:"btn-row"},
+      el("button",{class:"btn-secondary",onclick:async ev=>{
+        const b = ev.target; b.disabled = true;
+        try{ await driveBackup(); toast("Backed up to your Google Drive"); renderShare(); }
+        catch(err){ alert(err.message); }
+        b.disabled = false;
+      }},"Back up to Google Drive"),
+      el("button",{class:"btn-secondary",onclick:async ev=>{
+        const b = ev.target; b.disabled = true;
+        try{ const {added,updated} = await driveRestore(); render(); toast("Restored: "+added+" added, "+updated+" updated"); }
+        catch(err){ alert(err.message); }
+        b.disabled = false;
+      }},"Restore from Google Drive")
+    ));
+    bk.append(el("div",{class:"hint",style:"margin-top:6px"},
+      "Google access is limited to the one backup file this app creates — it cannot see anything else in your Drive."));
+  } else {
+    bk.append(el("div",{class:"hint",style:"margin-top:10px"},
+      "Google Drive backup is available once the clinic configures it (set GOOGLE_CLIENT_ID in the app file)."));
+  }
+  v.append(bk);
+
+  const danger = el("div",{class:"card"});
+  danger.append(el("h2",null,"Start over"));
+  danger.append(el("button",{class:"btn-danger",onclick:()=>{
+    if (confirm("Erase the entire diary from this device? This cannot be undone.")){
+      state.entries = {}; saveState(); render(); toast("Diary erased");
+    }
+  }},"Erase all diary data"));
+  v.append(danger);
+}
+
+/* ---------- demo data (remove for clinical deployment) ---------- */
+function seedDemo(){
+  if (Object.keys(state.entries).length) return;
+  const base = addDays(isoToday(), -7);
+  const demo = [
+    {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{inBed:"12:40",asleep:"12:55",woke:"14:10",out:"14:15"}]},
+    {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{inBed:"13:00",asleep:"13:10",woke:"14:20",out:"14:25"}]},
+    {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{inBed:"12:30",asleep:"12:50",woke:"13:55",out:"14:00"}]},
+    {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
+    {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{inBed:"12:45",asleep:"13:00",woke:"14:30",out:"14:35"}]},
+    {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{inBed:"13:10",asleep:"13:25",woke:"14:15",out:"14:20"}]},
+    {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{inBed:"12:50",asleep:"13:05",woke:"14:25",out:"14:30"}]}
+  ];
+  demo.forEach((d,i)=>{
+    const date = addDays(base, i);
+    state.entries[date] = { date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
+      awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "" };
+  });
+  state.settings.initials = state.settings.initials || "Demo";
+  saveState();
+}
+
+/* ---------- init ---------- */
+(async function(){
+  await loadState();
+  render();
+})();
+/* ============================================================
+   Backup & restore
+   ============================================================ */
+
+/* ---- Google Drive backup (optional) ----
+   To enable: create a Google Cloud project, configure an OAuth
+   consent screen, create a Web OAuth client ID, add your hosting
+   origin to "Authorized JavaScript origins", and paste the client
+   ID below. Scope is drive.file only: the app can touch ONLY the
+   one backup file it creates, nothing else in the parent's Drive. */
+const GOOGLE_CLIENT_ID = "";   // e.g. "1234567890-abc.apps.googleusercontent.com"
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_FILENAME = "pediatric-sleep-diary-backup.json";
+
+function backupPayload(){
+  return JSON.stringify({
+    format:"peds-sleep-diary-backup", version:1,
+    exported:new Date().toISOString(),
+    settings:state.settings, entries:state.entries
+  }, null, 1);
+}
+function applyBackup(obj){
+  if (!obj || obj.format!=="peds-sleep-diary-backup" || typeof obj.entries!=="object")
+    throw new Error("Not a sleep diary backup file.");
+  let added=0, updated=0;
+  Object.values(obj.entries).forEach(e=>{
+    if (!e || !e.date) return;
+    if (state.entries[e.date]) updated++; else added++;
+    state.entries[e.date]=e;
+  });
+  if (obj.settings && obj.settings.initials && !state.settings.initials)
+    state.settings.initials = obj.settings.initials;
+  saveState();
+  return {added, updated};
+}
+
+let gisLoaded = null;
+function loadGIS(){
+  if (gisLoaded) return gisLoaded;
+  gisLoaded = new Promise((res,rej)=>{
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = ()=>res(); s.onerror = ()=>rej(new Error("Could not load Google sign-in. Check your connection."));
+    document.head.append(s);
+  });
+  return gisLoaded;
+}
+function getDriveToken(){
+  return new Promise(async (res,rej)=>{
+    try { await loadGIS(); } catch(e){ rej(e); return; }
+    if (!(window.google && google.accounts && google.accounts.oauth2)){
+      rej(new Error("Google sign-in unavailable in this environment.")); return;
+    }
+    const tc = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: t => t && t.access_token ? res(t.access_token) : rej(new Error("Sign-in was cancelled."))
+    });
+    tc.requestAccessToken();
+  });
+}
+async function driveFindFile(token){
+  if (state.settings.driveFileId){
+    const r = await fetch("https://www.googleapis.com/drive/v3/files/"+state.settings.driveFileId+"?fields=id,trashed",
+      {headers:{Authorization:"Bearer "+token}});
+    if (r.ok){ const f = await r.json(); if (!f.trashed) return f.id; }
+    state.settings.driveFileId = null;
+  }
+  const q = encodeURIComponent("name='"+DRIVE_FILENAME+"' and trashed=false");
+  const r = await fetch("https://www.googleapis.com/drive/v3/files?q="+q+"&fields=files(id)",
+    {headers:{Authorization:"Bearer "+token}});
+  if (r.ok){ const d = await r.json(); if (d.files && d.files.length) return d.files[0].id; }
+  return null;
+}
+async function driveBackup(){
+  const token = await getDriveToken();
+  let id = await driveFindFile(token);
+  const body = backupPayload();
+  let r;
+  if (id){
+    r = await fetch("https://www.googleapis.com/upload/drive/v3/files/"+id+"?uploadType=media",
+      {method:"PATCH", headers:{Authorization:"Bearer "+token, "Content-Type":"application/json"}, body});
+  } else {
+    const boundary = "pdsleep" + Date.now();
+    const multi =
+      "--"+boundary+"\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n"+
+      JSON.stringify({name:DRIVE_FILENAME, mimeType:"application/json"})+
+      "\r\n--"+boundary+"\r\nContent-Type: application/json\r\n\r\n"+body+"\r\n--"+boundary+"--";
+    r = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+      {method:"POST", headers:{Authorization:"Bearer "+token, "Content-Type":"multipart/related; boundary="+boundary}, body:multi});
+  }
+  if (!r.ok) throw new Error("Drive upload failed ("+r.status+").");
+  const f = await r.json();
+  if (f.id){ state.settings.driveFileId = f.id; }
+  state.settings.lastDriveBackup = new Date().toISOString();
+  saveState();
+}
+async function driveRestore(){
+  const token = await getDriveToken();
+  const id = await driveFindFile(token);
+  if (!id) throw new Error("No backup found in this Google account.");
+  const r = await fetch("https://www.googleapis.com/drive/v3/files/"+id+"?alt=media",
+    {headers:{Authorization:"Bearer "+token}});
+  if (!r.ok) throw new Error("Could not download the backup ("+r.status+").");
+  return applyBackup(await r.json());
+}
+
+</script>
+</body>
+</html>
