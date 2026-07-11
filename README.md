@@ -1,5 +1,12 @@
 # Pediatric Sleep Diary
 
+**Try it:**
+
+- **App:** https://craigcanaparimd.github.io/sleep-diary/
+- **Demo (preloaded with 7 nights of sample data):** https://craigcanaparimd.github.io/sleep-diary/demo.html
+- **Sample exports** — what the clinic receives: [text summary](examples/sample-summary.txt) · [CSV](examples/sample-export.csv) · [PDF report](examples/sample-report.pdf)
+- **Open source** under the [MIT license](LICENSE): [github.com/CraigCanapariMD/sleep-diary](https://github.com/CraigCanapariMD/sleep-diary)
+
 A small installable web app (PWA) for parents to track a child's sleep (3–14+ days)
 and share results with their sleep clinic. No server, no accounts: all data stays
 on the parent's phone until the parent exports it (plain-text summary for MyChart,

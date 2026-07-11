@@ -116,3 +116,16 @@ presentation-worthy (bugs found by real use, judgment calls, costs, time).*
 Everything above. Also: Xcode installed (components downloading) toward
 running the iOS shell in the simulator; live site confirmed at
 https://craigcanaparimd.github.io/sleep-diary/.
+
+### 2026-07-11 (later) — install prompts, instant updates, sample exports
+User-QA-driven polish: smart install banner (one-tap install on Android;
+Share→Add-to-Home-Screen instructions on iOS, which allows no install API);
+auto-reload when an updated service worker takes control (updates now appear
+on the same open — added after the two-open update dance confused real-device
+testing); iPhone entry-form fixes from a phone screenshot (input overflow,
+stray "null", header vs. status bar). Added "Try it" links to the README and
+an examples/ folder with real exports from the 7-night demo dataset — text
+summary, CSV, and the one-page PDF report — generated via a new `?print` URL
+mode (also handy for automated report snapshots). Commits `cb57425`…this one.
+Talking point: the sample PDF in examples/ is the single best "here's what
+your clinic receives" slide asset.
