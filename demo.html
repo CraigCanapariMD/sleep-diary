@@ -5,105 +5,236 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Pediatric Sleep Diary</title>
+<meta name="apple-mobile-web-app-title" content="Sleep Diary">
+<meta name="theme-color" content="#2A7D6B">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Pediatric Sleep Diary — Demo</title>
 <style>
-:root{
-  --ink:#23244a;        /* deep indigo text */
-  --ink-soft:#5a5b7a;
-  --bg:#f7f7fb;         /* moonlight */
-  --card:#ffffff;
-  --line:#e3e3ee;
-  --night:#3b3e8f;      /* night-sleep shading */
-  --nap:#9b9fe0;        /* nap shading */
-  --accent:#4f52b8;
-  --accent-ink:#ffffff;
-  --good:#1e7b4f;
-  --warn:#a05a00;
-  --bad:#b3261e;
-  --radius:14px;
+/* ============================================================
+   Canapari brand tokens — "Fossil" palette (pasted from brand.css)
+   ============================================================ */
+:root {
+  --brand-bg:             #F5F2EE;
+  --brand-surface:        #EDE9E4;
+  --brand-ink:            #050911;
+  --brand-muted:          #6B655C;
+  --brand-muted-graphic:  #8A847B;
+  --brand-accent:         #2A7D6B;
+  --brand-accent-text:    #1F6A59;
+  --brand-accent-hover:   #1A5546;
+  --brand-on-accent:      #FFFFFF;
+  --brand-accent-tint:    #E7F0ED;
+  --brand-accent-border:  #C9E0D8;
+  --brand-warning:        #B4472F;
+  --brand-warning-tint:   #FBF1ED;
+  --brand-warning-border: #EFD8D0;
+  --brand-border:         #DED8CF;
+  --brand-font-heading: 'Plus Jakarta Sans', system-ui, -apple-system, "Segoe UI", sans-serif;
+  --brand-font-body:    'Charter', 'Bitstream Charter', 'Sitka Text', Cambria, Georgia, serif;
+  --brand-text-base:    18px;
+  --brand-line-body:    1.55;
+  --brand-line-heading: 1.2;
+  --brand-tracking-h1:  -0.02em;
+  --brand-radius:    8px;
+  --brand-radius-lg: 12px;
+  --brand-shadow:    0 4px 20px rgba(5, 9, 17, 0.08);
+  --color-bg:         var(--brand-bg);
+  --color-surface:    var(--brand-surface);
+  --color-text:       var(--brand-ink);
+  --color-text-muted: var(--brand-muted);
+  --color-accent:     var(--brand-accent);
+  --color-link:       var(--brand-accent-text);
+  --color-on-accent:  var(--brand-on-accent);
+  --color-border:     var(--brand-border);
+  --color-warning:    var(--brand-warning);
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand-bg:             #1A1A1B;
+    --brand-surface:        #141413;
+    --brand-ink:            #F5F2EE;
+    --brand-muted:          #B5AFA6;
+    --brand-muted-graphic:  #B5AFA6;
+    --brand-accent:         #4FB89F;
+    --brand-accent-text:    #4FB89F;
+    --brand-accent-hover:   #69C9B1;
+    --brand-on-accent:      #10231F;
+    --brand-accent-tint:    #17302A;
+    --brand-accent-border:  #24463D;
+    --brand-warning:        #E08769;
+    --brand-warning-tint:   #2A1A14;
+    --brand-warning-border: #4A2A1E;
+    --brand-border:         #2E2D2A;
+    --brand-shadow:         0 4px 20px rgba(0, 0, 0, 0.40);
+  }
+}
+[data-theme="dark"] {
+  --brand-bg:             #1A1A1B;
+  --brand-surface:        #141413;
+  --brand-ink:            #F5F2EE;
+  --brand-muted:          #B5AFA6;
+  --brand-muted-graphic:  #B5AFA6;
+  --brand-accent:         #4FB89F;
+  --brand-accent-text:    #4FB89F;
+  --brand-accent-hover:   #69C9B1;
+  --brand-on-accent:      #10231F;
+  --brand-accent-tint:    #17302A;
+  --brand-accent-border:  #24463D;
+  --brand-warning:        #E08769;
+  --brand-warning-tint:   #2A1A14;
+  --brand-warning-border: #4A2A1E;
+  --brand-border:         #2E2D2A;
+  --brand-shadow:         0 4px 20px rgba(0, 0, 0, 0.40);
+}
+
+/* ============================================================
+   App styles — reference semantic tokens only
+   ============================================================ */
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
-  background:var(--bg);color:var(--ink);
-  font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  padding-bottom:84px;
+  background:var(--color-bg);color:var(--color-text);
+  font-family:var(--brand-font-body);
+  font-size:17px;line-height:var(--brand-line-body);
+  padding-bottom:88px;
   -webkit-text-size-adjust:100%;
 }
 header.app{
-  background:var(--ink);color:#fff;
+  background:var(--color-accent);color:var(--color-on-accent);
   padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;
 }
-header.app h1{margin:0;font-size:18px;font-weight:700;letter-spacing:.2px}
-header.app .sub{font-size:13px;opacity:.78;margin-top:2px}
+header.app h1{margin:0;font-size:19px;font-weight:800;letter-spacing:var(--brand-tracking-h1);font-family:var(--brand-font-heading)}
+header.app .sub{font-size:13.5px;opacity:.85;margin-top:2px;font-family:var(--brand-font-heading)}
 main{max-width:680px;margin:0 auto;padding:14px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px}
-.card h2{margin:0 0 8px;font-size:15px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--ink-soft)}
-.card h2 .big{display:block;text-transform:none;letter-spacing:0;color:var(--ink);font-size:18px;margin-top:2px}
-button{font:inherit;cursor:pointer;border:none;border-radius:10px;padding:10px 14px}
-.btn-primary{background:var(--accent);color:var(--accent-ink);font-weight:600;width:100%}
-.btn-secondary{background:#ececf6;color:var(--ink);font-weight:600}
-.btn-ghost{background:transparent;color:var(--accent);font-weight:600;padding:8px 10px}
-.btn-danger{background:transparent;color:var(--bad);font-weight:600}
+.card{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--brand-radius-lg);padding:14px;margin-bottom:12px}
+.card h2{margin:0 0 8px;font-size:13px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--color-text-muted);font-family:var(--brand-font-heading)}
+.card h2 .big{display:block;text-transform:none;letter-spacing:var(--brand-tracking-h1);color:var(--color-text);font-size:18px;margin-top:2px;font-weight:700}
+.card.tint{background:var(--brand-accent-tint);border-color:var(--brand-accent-border)}
+.card.warn{background:var(--brand-warning-tint);border-color:var(--brand-warning-border)}
+button{font-family:var(--brand-font-heading);font-size:15.5px;cursor:pointer;border:none;border-radius:var(--brand-radius);padding:11px 14px}
+.btn-primary{
+  background:linear-gradient(180deg,var(--color-accent),var(--brand-accent-hover));
+  color:var(--color-on-accent);font-weight:700;width:100%;
+}
+.btn-secondary{background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-text);font-weight:600}
+.btn-ghost{background:transparent;color:var(--color-link);font-weight:700;padding:8px 10px}
+.btn-danger{background:transparent;color:var(--color-warning);font-weight:600}
 .btn-row{display:flex;gap:8px;margin-top:10px}
 .btn-row>button{flex:1}
-label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin:10px 0 4px}
+label{display:block;font-size:13px;font-weight:700;color:var(--color-text-muted);margin:10px 0 4px;font-family:var(--brand-font-heading)}
 input[type=date],input[type=time],input[type=number],input[type=text],select,textarea{
-  font:inherit;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);
+  font:inherit;width:100%;padding:9px 10px;border:2px solid var(--color-border);
+  border-radius:var(--brand-radius);background:var(--color-bg);color:var(--color-text);
+}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--color-accent);
+  box-shadow:0 0 0 3px rgba(42,125,107,0.18);
 }
 textarea{resize:vertical;min-height:54px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.sub-item{border:1px dashed var(--line);border-radius:10px;padding:10px;margin-top:8px;background:#fbfbfe}
+.sub-item{border:1px dashed var(--color-border);border-radius:var(--brand-radius);padding:10px;margin-top:8px;background:var(--color-bg)}
 .sub-item .rm{float:right}
-.hint{font-size:12.5px;color:var(--ink-soft);margin-top:4px}
-.warnmsg{font-size:13px;color:var(--warn);margin-top:6px}
+.hint{font-size:13.5px;color:var(--color-text-muted);margin-top:4px}
+.warnmsg{font-size:14px;color:var(--color-warning);margin-top:6px}
 /* entry list */
-.entry-row{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.entry-row{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--color-border);cursor:pointer}
 .entry-row:last-child{border-bottom:none}
-.entry-row .d{font-weight:650}
-.entry-row .meta{font-size:13px;color:var(--ink-soft)}
-.entry-row .chev{color:var(--ink-soft)}
-.empty{padding:26px 8px;text-align:center;color:var(--ink-soft);font-size:14.5px}
+.entry-row .d{font-weight:700;font-family:var(--brand-font-heading);font-size:15px}
+.entry-row .meta{font-size:13.5px;color:var(--color-text-muted)}
+.entry-row .chev{color:var(--color-text-muted)}
+.empty{padding:26px 8px;text-align:center;color:var(--color-text-muted);font-size:15px}
+/* missed-night chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chips button{background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-link);font-weight:700;font-size:13.5px;padding:7px 11px;border-radius:999px}
 /* stats */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:#fbfbfe;border:1px solid var(--line);border-radius:10px;padding:10px}
-.stat .v{font-size:20px;font-weight:700;line-height:1.15}
-.stat .v .pm{font-size:12.5px;font-weight:600;color:var(--ink-soft)}
-.stat .k{font-size:12px;color:var(--ink-soft);margin-top:2px}
-table.pernight{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
-table.pernight th,table.pernight td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.stat{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--brand-radius);padding:10px}
+.stat .v{font-size:21px;font-weight:800;line-height:1.15;font-family:var(--brand-font-heading);color:var(--brand-accent-text)}
+.stat .v .pm{font-size:12.5px;font-weight:600;color:var(--color-text-muted)}
+.stat .k{font-size:12.5px;color:var(--color-text-muted);margin-top:2px;font-family:var(--brand-font-heading)}
+table.pernight{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+table.pernight th,table.pernight td{padding:5px 6px;text-align:right;border-bottom:1px solid var(--color-border);white-space:nowrap}
 table.pernight th:first-child,table.pernight td:first-child{text-align:left}
-table.pernight th{color:var(--ink-soft);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px}
+table.pernight th{color:var(--color-text-muted);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.3px;font-family:var(--brand-font-heading)}
 .scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
 /* chart */
 .chart-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.legend{display:flex;gap:16px;font-size:12.5px;color:var(--ink-soft);margin-top:8px;flex-wrap:wrap}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--color-text-muted);margin-top:8px;flex-wrap:wrap}
 .legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.legend .sw.night{background:var(--color-accent)}
+.legend .sw.nap{background:var(--brand-accent-border);border:1px solid var(--color-accent)}
+/* SVG chart parts (colors resolve with the theme) */
+svg.sleepchart .c-grid{stroke:var(--color-border);stroke-width:1}
+svg.sleepchart .c-glabel{fill:var(--color-text-muted);font-family:var(--brand-font-heading)}
+svg.sleepchart .c-dlabel{fill:var(--color-text);font-weight:600;font-family:var(--brand-font-heading)}
+svg.sleepchart .c-rowbg{fill:var(--color-bg);stroke:var(--color-border)}
+svg.sleepchart .c-night{fill:var(--color-accent)}
+svg.sleepchart .c-nap{fill:var(--brand-accent-border);stroke:var(--color-accent);stroke-width:.75}
+svg.sleepchart .c-arrow{stroke:var(--color-text);stroke-width:1.6;fill:none}
 /* tabs */
 nav.tabs{
-  position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+  position:fixed;left:0;right:0;bottom:0;background:var(--color-surface);border-top:1px solid var(--color-border);
   display:flex;justify-content:space-around;padding:6px 4px calc(env(safe-area-inset-bottom,0px) + 6px);
   z-index:20;
 }
-nav.tabs button{background:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--ink-soft);font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:10px}
-nav.tabs button.active{color:var(--accent)}
+nav.tabs button{background:none;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--color-text-muted);font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:var(--brand-radius)}
+nav.tabs button.active{color:var(--color-link)}
 nav.tabs button svg{width:22px;height:22px}
 .view{display:none}
 .view.active{display:block}
 .toast{
   position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
-  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;
-  opacity:0;pointer-events:none;transition:opacity .25s;z-index:40;white-space:nowrap;
+  background:var(--color-text);color:var(--color-bg);padding:10px 16px;border-radius:999px;font-size:14.5px;
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:40;white-space:nowrap;font-family:var(--brand-font-heading);
 }
 .toast.show{opacity:1}
 pre.export{
-  background:#fbfbfe;border:1px solid var(--line);border-radius:10px;padding:10px;
+  background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--brand-radius);padding:10px;
   font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;
+  white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto;color:var(--color-text);
 }
-.pill{display:inline-block;background:#ececf6;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600;color:var(--ink-soft);margin-left:6px}
+.banner{
+  background:var(--brand-warning-tint);border:1px solid var(--brand-warning-border);
+  border-radius:var(--brand-radius-lg);padding:12px 14px;margin-bottom:12px;font-size:14.5px;
+}
+.banner b{font-family:var(--brand-font-heading)}
+.banner button{margin-top:8px}
+.nsf-flag{border-radius:var(--brand-radius);padding:10px 12px;margin-top:10px;font-size:14.5px}
+.nsf-flag.ok{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);color:var(--color-text)}
+.nsf-flag.may{background:var(--brand-warning-tint);border:1px solid var(--brand-warning-border);color:var(--color-text)}
+.nsf-flag.out{background:var(--brand-warning-tint);border:2px solid var(--color-warning);color:var(--color-text)}
+.nsf-flag b{font-family:var(--brand-font-heading)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ============================================================
+   Print report — only #printReport prints, in light palette
+   ============================================================ */
+#printReport{display:none}
+@media print{
+  :root, :root:not([data-theme="light"]), [data-theme="dark"]{
+    --brand-bg:#FFFFFF; --brand-surface:#FFFFFF; --brand-ink:#050911;
+    --brand-muted:#6B655C; --brand-muted-graphic:#8A847B;
+    --brand-accent:#2A7D6B; --brand-accent-text:#1F6A59;
+    --brand-accent-hover:#1A5546; --brand-on-accent:#FFFFFF;
+    --brand-accent-tint:#E7F0ED; --brand-accent-border:#C9E0D8;
+    --brand-warning:#B4472F; --brand-warning-tint:#FBF1ED;
+    --brand-warning-border:#EFD8D0; --brand-border:#DED8CF;
+  }
+  body{background:#fff;padding:0}
+  body>header.app, body>main, body>nav.tabs, body>.toast{display:none!important}
+  #printReport{display:block;font-size:12px;color:#050911}
+  #printReport h1{font-size:18px;margin:0 0 2px;font-family:var(--brand-font-heading)}
+  #printReport .prsub{font-size:12px;color:#6B655C;margin-bottom:12px}
+  #printReport h2{font-size:13px;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 6px;font-family:var(--brand-font-heading)}
+  #printReport table{width:100%;border-collapse:collapse;font-size:11px}
+  #printReport th,#printReport td{padding:4px 6px;border-bottom:1px solid #DED8CF;text-align:right;white-space:nowrap}
+  #printReport th:first-child,#printReport td:first-child{text-align:left}
+  #printReport th{text-align:right;color:#6B655C;font-size:10px;text-transform:uppercase}
+  #printReport svg{width:100%;height:auto}
+  #printReport .prfoot{margin-top:14px;font-size:10px;color:#6B655C}
+  #printReport .nsf-flag{page-break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -112,32 +243,68 @@ pre.export{
   <div class="sub" id="hdrSub">Track your child's sleep, night by night</div>
 </header>
 <main>
-  <div id="view-diary" class="view active"></div>
-  <div id="view-chart" class="view"></div>
-  <div id="view-summary" class="view"></div>
-  <div id="view-share" class="view"></div>
+  <div id="view-diary" class="view active" role="tabpanel" aria-label="Diary"></div>
+  <div id="view-chart" class="view" role="tabpanel" aria-label="Chart"></div>
+  <div id="view-summary" class="view" role="tabpanel" aria-label="Summary"></div>
+  <div id="view-share" class="view" role="tabpanel" aria-label="Share"></div>
 </main>
-<nav class="tabs">
-  <button data-tab="diary" class="active" aria-label="Diary">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 4v13a3 3 0 0 0 3 3"/><path d="M9 9h6M9 13h6"/></svg>
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button data-tab="diary" class="active" role="tab" aria-selected="true" aria-controls="view-diary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4z"/><path d="M5 4v13a3 3 0 0 0 3 3"/><path d="M9 9h6M9 13h6"/></svg>
     Diary</button>
-  <button data-tab="chart" aria-label="Chart">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="3" rx="1"/><rect x="6" y="11" width="14" height="3" rx="1"/><rect x="4" y="17" width="12" height="3" rx="1"/></svg>
+  <button data-tab="chart" role="tab" aria-selected="false" aria-controls="view-chart">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="3" rx="1"/><rect x="6" y="11" width="14" height="3" rx="1"/><rect x="4" y="17" width="12" height="3" rx="1"/></svg>
     Chart</button>
-  <button data-tab="summary" aria-label="Summary">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
+  <button data-tab="summary" role="tab" aria-selected="false" aria-controls="view-summary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19V10M10 19V5M16 19v-7M21 19H3"/></svg>
     Summary</button>
-  <button data-tab="share" aria-label="Share">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+  <button data-tab="share" role="tab" aria-selected="false" aria-controls="view-share">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
     Share</button>
 </nav>
 <div class="toast" id="toast"></div>
+<div id="printReport" aria-hidden="true"></div>
+<script>
+/* DEMO BUILD — this block is the only difference from index.html.
+   Pre-loads 7 nights of sample data on first open, for showing colleagues. */
+(function(){
+  try{
+    if (localStorage.getItem("peds-sleep-diary-demo-seeded")) return;
+    if (localStorage.getItem("peds-sleep-diary-v1")) return;
+    var today = new Date();
+    function dAgo(k){
+      var t = new Date(today.getFullYear(), today.getMonth(), today.getDate()-k);
+      return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
+    }
+    var demo = [
+      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{inBed:"12:40",asleep:"12:55",woke:"14:10",out:"14:15"}]},
+      {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{inBed:"13:00",asleep:"13:10",woke:"14:20",out:"14:25"}]},
+      {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{inBed:"12:30",asleep:"12:50",woke:"13:55",out:"14:00"}]},
+      {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
+      {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{inBed:"12:45",asleep:"13:00",woke:"14:30",out:"14:35"}]},
+      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{inBed:"13:10",asleep:"13:25",woke:"14:15",out:"14:20"}]},
+      {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{inBed:"12:50",asleep:"13:05",woke:"14:25",out:"14:30"}]}
+    ];
+    var entries = {};
+    demo.forEach(function(d,i){
+      var date = dAgo(demo.length - i);
+      entries[date] = { date:date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
+        awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "" };
+    });
+    var state = { version:2, activeChild:"c1",
+      children:{ c1:{ settings:{ initials:"Demo", ageBand:"toddler" }, entries:entries } },
+      meta:{ lastBackupAt:null }, drive:{ fileId:null, lastBackupAt:null } };
+    localStorage.setItem("peds-sleep-diary-v1", JSON.stringify(state));
+    localStorage.setItem("peds-sleep-diary-demo-seeded","1");
+  }catch(e){}
+})();
+</script>
 <script>
 "use strict";
 
 /* ============================================================
-   Pediatric Sleep Diary — single-file web app
-   Data model: one entry per calendar day D.
+   Pediatric Sleep Diary — single-file web app (+ sw.js/manifest)
+   Data model (v2): per child, one entry per calendar day D.
      - naps: naps taken during day D (before that night's bedtime)
      - night: the night of D (evening D -> morning D+1)
    All clock times are stored "HH:MM" (24h) and mapped onto a
@@ -146,48 +313,135 @@ pre.export{
    so plain arithmetic means/SDs are valid.
    ============================================================ */
 
-/* ---------- storage adapter ----------
-   Inside Claude artifacts, window.storage exists (async KV).
-   Deployed on the open web it does not; fall back to localStorage. */
+/* ---------- storage: IndexedDB primary, localStorage mirror ----------
+   iOS evicts localStorage far more readily than IndexedDB; we write both
+   and read whichever survives. navigator.storage.persist() asks the
+   browser not to evict at all. */
+const STORE_KEY = "peds-sleep-diary-v1";
+const IDB_NAME = "peds-sleep-diary", IDB_STORE = "kv";
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const q = indexedDB.open(IDB_NAME, 1);
+    q.onupgradeneeded = ()=> q.result.createObjectStore(IDB_STORE);
+    q.onsuccess = ()=> res(q.result);
+    q.onerror = ()=> rej(q.error);
+  });
+}
+async function idbGet(k){
+  const db = await idbOpen();
+  try{
+    return await new Promise((res,rej)=>{
+      const t = db.transaction(IDB_STORE,"readonly").objectStore(IDB_STORE).get(k);
+      t.onsuccess = ()=>res(t.result==null? null : t.result);
+      t.onerror = ()=>rej(t.error);
+    });
+  } finally { db.close(); }
+}
+async function idbSet(k,v){
+  const db = await idbOpen();
+  try{
+    return await new Promise((res,rej)=>{
+      const tx = db.transaction(IDB_STORE,"readwrite");
+      tx.objectStore(IDB_STORE).put(v,k);
+      tx.oncomplete = ()=>res();
+      tx.onerror = ()=>rej(tx.error);
+    });
+  } finally { db.close(); }
+}
 const KV = {
   async get(k){
-    if (window.storage && window.storage.get){
-      try { const r = await window.storage.get(k); return r ? r.value : null; }
-      catch(e){ return null; }
-    }
+    let idbVal = null;
+    try { idbVal = await idbGet(k); } catch(e){}
+    if (idbVal != null) return idbVal;
     try { return window.localStorage.getItem(k); } catch(e){ return null; }
   },
   async set(k,v){
-    if (window.storage && window.storage.set){
-      try { await window.storage.set(k,v); } catch(e){ console.error("storage.set",e); }
-      return;
-    }
-    try { window.localStorage.setItem(k,v); } catch(e){ console.error("localStorage.set",e); }
+    try { await idbSet(k,v); } catch(e){ console.error("idb.set",e); }
+    try { window.localStorage.setItem(k,v); } catch(e){}
   }
 };
-const STORE_KEY = "peds-sleep-diary-v1";
 
-/* ---------- state ---------- */
-let state = { settings:{ initials:"" }, entries:{} };
-// entries: { "2026-06-09": {date, lightsOut, onset, wake, outOfBed,
-//            awakenings:[{time,dur,help}], naps:[{inBed,asleep,woke,out}], notes} }
-
+/* ---------- state (v2: multiple children) ---------- */
+let state = null;
+function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{} }; }
+function blankState(){
+  return { version:2, activeChild:"c1", children:{ c1: blankChild() },
+           meta:{ lastBackupAt:null }, drive:{ fileId:null, lastBackupAt:null } };
+}
+function migrateState(s){
+  if (!s || typeof s!=="object") return blankState();
+  if (s.version === 2){
+    if (!s.children || !Object.keys(s.children).length) s.children = { c1: blankChild() };
+    if (!s.children[s.activeChild]) s.activeChild = Object.keys(s.children)[0];
+    if (!s.meta) s.meta = { lastBackupAt:null };
+    if (!s.drive) s.drive = { fileId:null, lastBackupAt:null };
+    Object.values(s.children).forEach(c=>{
+      if (!c.settings) c.settings = { initials:"", ageBand:"" };
+      if (c.settings.ageBand === undefined) c.settings.ageBand = "";
+      if (!c.entries) c.entries = {};
+    });
+    return s;
+  }
+  /* v1: { settings:{initials, driveFileId?, lastDriveBackup?}, entries:{} } */
+  const out = blankState();
+  out.children.c1.settings.initials = (s.settings && s.settings.initials) || "";
+  out.children.c1.entries = s.entries || {};
+  out.drive.fileId = (s.settings && s.settings.driveFileId) || null;
+  out.drive.lastBackupAt = (s.settings && s.settings.lastDriveBackup) || null;
+  return out;
+}
 async function loadState(){
+  let parsed = null;
   const raw = await KV.get(STORE_KEY);
-  if (raw){ try { state = JSON.parse(raw); } catch(e){} }
-  if (!state.settings) state.settings = { initials:"" };
-  if (!state.entries) state.entries = {};
+  if (raw){ try { parsed = JSON.parse(raw); } catch(e){} }
+  state = migrateState(parsed);
 }
 let saveTimer = null;
 function saveState(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(()=>{ KV.set(STORE_KEY, JSON.stringify(state)); }, 250);
 }
+function cur(){ return state.children[state.activeChild]; }
+
+/* ---------- NSF sleep duration recommendations ----------
+   Hirshkowitz et al., Sleep Health 2015;1(1):40-43 — re-certified by
+   Dzierzewski et al., Sleep Health 2026 (10-year systematic review).
+   recLo/recHi = recommended hours; mayLo/mayHi = outer bounds of the
+   "may be appropriate" band. Outside mayLo–mayHi = "not recommended". */
+const AGE_BANDS = {
+  newborn:   { label:"Newborn (0–3 months)",       recLo:14, recHi:17, mayLo:11, mayHi:19 },
+  infant:    { label:"Infant (4–11 months)",        recLo:12, recHi:15, mayLo:10, mayHi:18 },
+  toddler:   { label:"Toddler (1–2 years)",         recLo:11, recHi:14, mayLo:9,  mayHi:16 },
+  preschool: { label:"Preschooler (3–5 years)",     recLo:10, recHi:13, mayLo:8,  mayHi:14 },
+  school:    { label:"School age (6–13 years)",     recLo:9,  recHi:11, mayLo:7,  mayHi:12 },
+  teen:      { label:"Teenager (14–17 years)",      recLo:8,  recHi:10, mayLo:7,  mayHi:11 },
+  youngadult:{ label:"Young adult (18–25 years)",   recLo:7,  recHi:9,  mayLo:6,  mayHi:11 }
+};
+const NSF_CITATION = "National Sleep Foundation recommendations (Hirshkowitz et al., Sleep Health 2015; re-certified Dzierzewski et al., Sleep Health 2026).";
+/* Classify mean 24-h sleep (minutes) against the child's age band. */
+function nsfCompare(tst24min){
+  const band = AGE_BANDS[cur().settings.ageBand];
+  if (!band || isNaN(tst24min)) return null;
+  const h = tst24min/60;
+  const range = band.recLo+"–"+band.recHi+" h";
+  let cls, text;
+  if (h >= band.recLo && h <= band.recHi){
+    cls = "ok";  text = "Within the recommended range ("+range+") for this age.";
+  } else if (h < band.recLo && h >= band.mayLo){
+    cls = "may"; text = "Below the recommended range ("+range+"), in the “may be appropriate” band for this age.";
+  } else if (h > band.recHi && h <= band.mayHi){
+    cls = "may"; text = "Above the recommended range ("+range+"), in the “may be appropriate” band for this age.";
+  } else if (h < band.mayLo){
+    cls = "out"; text = "Below the “may be appropriate” band for this age (recommended "+range+").";
+  } else {
+    cls = "out"; text = "Above the “may be appropriate” band for this age (recommended "+range+").";
+  }
+  return { cls, text, band };
+}
 
 /* ---------- time helpers ---------- */
 function hm(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }           // minutes from midnight
 function mfn(t){ return ((hm(t) - 720) + 1440) % 1440; }                          // minutes from noon
-function mfnDay(t){ return hm(t) < 720 ? hm(t)+1440 : hm(t); }                    // unused guard
 function clock(mfnVal){                                                            // mfn -> "h:mm AM/PM"
   let m = ((Math.round(mfnVal) % 1440)+1440)%1440;
   let mm = (m + 720) % 1440;
@@ -213,6 +467,11 @@ function fmtDate(iso){
 function fmtDateShort(iso){
   const [y,mo,d]=iso.split("-").map(Number);
   return new Date(y,mo-1,d).toLocaleDateString(undefined,{month:"numeric",day:"numeric"});
+}
+function addDays(iso, k){
+  const [y,m,d] = iso.split("-").map(Number);
+  const dt = new Date(y, m-1, d + k);
+  return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
 }
 function mean(a){ return a.length ? a.reduce((s,x)=>s+x,0)/a.length : NaN; }
 function sd(a){
@@ -260,7 +519,7 @@ function computeNight(e){
 }
 
 function sortedEntries(){
-  return Object.values(state.entries).sort((a,b)=> a.date < b.date ? -1 : 1);
+  return Object.values(cur().entries).sort((a,b)=> a.date < b.date ? -1 : 1);
 }
 
 /* ---------- summary across nights ---------- */
@@ -314,11 +573,6 @@ function rasterFor(e){
   });
   return v;
 }
-function addDays(iso, k){
-  const [y,m,d] = iso.split("-").map(Number);
-  const dt = new Date(y, m-1, d + k);
-  return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0");
-}
 function computeSRI(){
   const byDate = {};
   sortedEntries().forEach(e=>{ const r = rasterFor(e); if (r) byDate[e.date] = r; });
@@ -353,14 +607,19 @@ function toast(msg){
 }
 
 /* ---------- tabs ---------- */
-document.querySelectorAll("nav.tabs button").forEach(b=>{
-  b.addEventListener("click", ()=>{
-    document.querySelectorAll("nav.tabs button").forEach(x=>x.classList.toggle("active", x===b));
-    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-    $("#view-"+b.dataset.tab).classList.add("active");
-    render(b.dataset.tab);
-    window.scrollTo(0,0);
+function switchTab(name){
+  document.querySelectorAll("nav.tabs button").forEach(x=>{
+    const on = x.dataset.tab === name;
+    x.classList.toggle("active", on);
+    x.setAttribute("aria-selected", on ? "true" : "false");
   });
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  $("#view-"+name).classList.add("active");
+  render(name);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav.tabs button").forEach(b=>{
+  b.addEventListener("click", ()=> switchTab(b.dataset.tab));
 });
 
 function render(tab){
@@ -373,27 +632,117 @@ function render(tab){
 }
 function headerSub(){
   const n = sortedEntries().length;
-  const who = state.settings.initials ? "Child: "+state.settings.initials+" · " : "";
+  const who = cur().settings.initials ? "Child: "+cur().settings.initials+" · " : "";
   return who + (n ? n + (n===1?" night":" nights") + " recorded" : "Track your child's sleep, night by night");
 }
 
 /* ---------- diary view ---------- */
-let editing = null; // date being edited, or "__new__"
+let editing = null;      // date being edited, or "__new__"
+let newEntryDate = null; // preset date when adding a missed night
+
+function missingNights(){
+  const entries = sortedEntries();
+  if (!entries.length) return [];
+  const yesterday = addDays(isoToday(), -1);
+  const out = [];
+  let d = entries[0].date;
+  const end = yesterday > entries[entries.length-1].date ? yesterday : entries[entries.length-1].date;
+  while (d <= end){
+    if (!cur().entries[d]) out.push(d);
+    d = addDays(d, 1);
+  }
+  return out;
+}
+function backupDue(){
+  const n = sortedEntries().length;
+  if (n < 5) return false;
+  const stamps = [state.meta.lastBackupAt, state.drive.lastBackupAt].filter(Boolean);
+  if (!stamps.length) return true;
+  const latest = stamps.sort().pop();
+  return (Date.now() - new Date(latest).getTime()) > 7*24*3600*1000;
+}
 
 function renderDiary(){
   const v = $("#view-diary"); v.innerHTML = "";
-  if (editing){ v.append(entryForm(editing === "__new__" ? null : state.entries[editing])); return; }
+  if (editing){
+    const preset = newEntryDate; newEntryDate = null;
+    v.append(entryForm(editing === "__new__" ? null : cur().entries[editing], preset));
+    return;
+  }
 
-  // settings card
-  v.append(el("div",{class:"card"},
-    el("h2",null,"Setup"),
+  /* backup nudge */
+  if (backupDue()){
+    v.append(el("div",{class:"banner"},
+      el("b",null,"Protect your diary. "),
+      "You have "+sortedEntries().length+" nights recorded and no recent backup. A backup keeps your data safe if this browser's storage is cleared.",
+      el("div",null, el("button",{class:"btn-secondary",onclick:()=>switchTab("share")},"Back up now"))
+    ));
+  }
+
+  /* child / setup card */
+  const ids = Object.keys(state.children);
+  const setup = el("div",{class:"card"});
+  setup.append(el("h2",null,"Setup"));
+  if (ids.length > 1 || true){
+    const sel = el("select",{onchange:ev=>{
+      if (ev.target.value === "__add__"){
+        const id = "c"+Date.now();
+        state.children[id] = blankChild();
+        state.activeChild = id;
+        saveState(); render();
+        return;
+      }
+      state.activeChild = ev.target.value; saveState(); render();
+    }});
+    ids.forEach(id=>{
+      const c = state.children[id];
+      sel.append(el("option",{value:id, ...(id===state.activeChild?{selected:""}:{})},
+        (c.settings.initials || "Unnamed child") + " ("+Object.keys(c.entries).length+" nights)"));
+    });
+    sel.append(el("option",{value:"__add__"},"+ Add another child…"));
+    setup.append(el("label",null,"Child"), sel);
+  }
+  setup.append(
     el("label",null,"Child's initials (no full names — this keeps the diary private)"),
-    el("input",{type:"text", maxlength:"6", value:state.settings.initials||"",
-      oninput:e=>{ state.settings.initials = e.target.value.trim(); saveState(); $("#hdrSub").textContent = headerSub(); }}),
+    el("input",{type:"text", maxlength:"6", value:cur().settings.initials||"",
+      oninput:e=>{ cur().settings.initials = e.target.value.trim(); saveState(); $("#hdrSub").textContent = headerSub(); }}),
+    el("label",null,"Child's age group (adds sleep-need comparison to the report)"),
+    el("select",{onchange:e=>{ cur().settings.ageBand = e.target.value; saveState(); }},
+      el("option",{value:""},"Not set — no comparison shown"),
+      Object.keys(AGE_BANDS).map(k=>
+        el("option",{value:k, ...(cur().settings.ageBand===k?{selected:""}:{})}, AGE_BANDS[k].label))),
     el("div",{class:"hint"},"Everything you enter stays on this device until you choose to share it.")
-  ));
+  );
+  if (ids.length > 1){
+    setup.append(el("button",{class:"btn-danger",style:"margin-top:8px;padding-left:0",onclick:()=>{
+      const c = cur();
+      if (confirm("Remove "+(c.settings.initials||"this child")+" and their "+Object.keys(c.entries).length+" recorded nights from this device?")){
+        delete state.children[state.activeChild];
+        state.activeChild = Object.keys(state.children)[0];
+        saveState(); render();
+      }
+    }},"Remove this child…"));
+  }
+  v.append(setup);
 
   v.append(el("button",{class:"btn-primary",onclick:()=>{ editing="__new__"; renderDiary(); }},"+ Add last night"));
+
+  /* missed nights */
+  const missing = missingNights();
+  if (missing.length){
+    const mc = el("div",{class:"card",style:"margin-top:12px"});
+    mc.append(el("h2",null,"Missing nights"));
+    mc.append(el("div",{class:"hint",style:"margin:0"},
+      missing.length + (missing.length===1?" night has":" nights have") +
+      " no entry. Tap to fill in while you still remember — gaps also break the regularity index."));
+    const chips = el("div",{class:"chips"});
+    missing.slice(-7).forEach(d=>{
+      chips.append(el("button",{onclick:()=>{ editing="__new__"; newEntryDate=d; renderDiary(); }},"+ "+fmtDate(d)));
+    });
+    if (missing.length > 7) chips.append(el("span",{class:"hint"},"…and "+(missing.length-7)+" more"));
+    mc.append(chips);
+    v.append(mc);
+  }
 
   const list = el("div",{class:"card",style:"margin-top:12px"});
   list.append(el("h2",null,"Recorded nights"));
@@ -418,23 +767,43 @@ function renderDiary(){
 }
 
 /* ---------- entry form ---------- */
-function entryForm(existing){
+function lastEntryBefore(dateIso){
+  const prior = sortedEntries().filter(x=> x.date < dateIso);
+  return prior.length ? prior[prior.length-1] : null;
+}
+function entryForm(existing, presetDate){
+  const targetDate = presetDate || addDays(isoToday(), -1); // "last night" = yesterday
+  /* Prefill a new entry from the most recent night — a far better prior
+     than fixed defaults once the family has logged once. */
+  const prev = existing ? null : lastEntryBefore(targetDate) ||
+               (sortedEntries().length ? sortedEntries()[sortedEntries().length-1] : null);
   const e = existing ? JSON.parse(JSON.stringify(existing)) : {
-    date: addDays(isoToday(), -1),  // "last night" = yesterday's date
+    date: targetDate,
     lightsOut:"", onset:"", wake:"", outOfBed:"",
     awakenings:[], naps:[], notes:""
   };
+  const inputs = {};
+  const touched = new Set(existing ? ['lightsOut','onset','wake','outOfBed'].filter(k=>e[k]) : []);
   const card = el("div",{class:"card"});
   card.append(el("h2",null, existing? "Edit night" : "New night",
     el("span",{class:"big"},"Night of ", el("span",{id:"fDateLabel"}, fmtDate(e.date)))));
 
   const warn = el("div",{class:"warnmsg",id:"fWarn"});
 
-  function timeField(labelTxt, key, hint){
-    const wrap = el("div",null,
-      el("label",null,labelTxt),
-      el("input",{type:"time", value:e[key]||"", oninput:ev=>{ e[key]=ev.target.value; showWarnings(); }}));
-    if (hint) wrap.append(el("div",{class:"hint"},hint));
+  function timeField(labelTxt, key, opts){
+    opts = opts||{};
+    const defaultVal = (prev && prev[key]) || opts.defaultVal || "";
+    if (!existing && !e[key] && defaultVal) e[key] = defaultVal;
+    const inp = el("input",{type:"time", value:e[key]||"",
+      oninput:ev=>{
+        e[key]=ev.target.value; touched.add(key); showWarnings();
+        if (opts.cascadeTo && !touched.has(opts.cascadeTo) && inputs[opts.cascadeTo]){
+          e[opts.cascadeTo]=ev.target.value; inputs[opts.cascadeTo].value=ev.target.value;
+        }
+      }});
+    inputs[key]=inp;
+    const wrap = el("div",null, el("label",null,labelTxt), inp);
+    if (opts.hint) wrap.append(el("div",{class:"hint"},opts.hint));
     return wrap;
   }
   function showWarnings(){
@@ -445,11 +814,12 @@ function entryForm(existing){
   card.append(
     el("label",null,"Date (the evening the night began)"),
     el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}),
+    prev ? el("div",{class:"hint"},"Times start from your last entry ("+fmtDate(prev.date)+") — adjust what changed.") : null,
     el("div",{class:"grid2"},
-      timeField("Lights out / put in bed","lightsOut"),
-      timeField("Fell asleep (your best guess)","onset"),
-      timeField("Woke up for the day","wake"),
-      timeField("Out of bed / out of crib","outOfBed")
+      timeField("Lights out / put in bed","lightsOut",{defaultVal:"20:00",cascadeTo:"onset"}),
+      timeField("Fell asleep (your best guess)","onset",{defaultVal:"20:00"}),
+      timeField("Woke up for the day","wake",{defaultVal:"06:30",cascadeTo:"outOfBed"}),
+      timeField("Out of bed / out of crib","outOfBed",{defaultVal:"06:30"})
     ),
     warn
   );
@@ -513,31 +883,28 @@ function entryForm(existing){
   const btns = el("div",{class:"btn-row"});
   btns.append(el("button",{class:"btn-secondary",onclick:()=>{ editing=null; renderDiary(); }},"Cancel"));
   if (existing) btns.append(el("button",{class:"btn-danger",onclick:()=>{
-      if (confirm("Delete this night?")){ delete state.entries[existing.date]; saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub(); }
+      if (confirm("Delete this night?")){ delete cur().entries[existing.date]; saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub(); }
     }},"Delete"));
   btns.append(el("button",{class:"btn-primary",onclick:()=>{
     if (!e.date){ toast("Pick a date"); return; }
     if (!(e.lightsOut && e.onset && e.wake && e.outOfBed)){ toast("Fill in the four main times"); return; }
+    /* guard against silently replacing an already-recorded night */
+    const clobbers = cur().entries[e.date] && (!existing || existing.date !== e.date);
+    if (clobbers && !confirm("The night of "+fmtDate(e.date)+" is already recorded. Replace it with this entry?")) return;
     e.awakenings = e.awakenings.filter(a=>a.time && a.dur!=="");
     e.naps = e.naps.filter(n=>n.asleep && n.woke);
-    if (existing && existing.date !== e.date) delete state.entries[existing.date];
-    state.entries[e.date] = e;
+    if (existing && existing.date !== e.date) delete cur().entries[existing.date];
+    cur().entries[e.date] = e;
     saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub();
     toast("Night saved");
   }},"Save night"));
   card.append(btns);
   return card;
 }
-/* ---------- chart view (Mindell-style shaded log, noon -> noon) ---------- */
-function renderChart(){
-  const v = $("#view-chart"); v.innerHTML = "";
-  const entries = sortedEntries();
-  const card = el("div",{class:"card"});
-  card.append(el("h2",null,"Sleep chart", el("span",{class:"big"},"Each row is one day, noon to noon")));
-  if (!entries.length){
-    card.append(el("div",{class:"empty"},"Add a night in the Diary tab to see the chart."));
-    v.append(card); return;
-  }
+/* ---------- chart (Mindell-style shaded log, noon -> noon) ----------
+   Shared by the Chart tab and the print report. Colors come from CSS
+   classes so they follow the light/dark theme (and print palette). */
+function buildChartSVG(entries){
   const LEFT = 64, RIGHT = 10, TOP = 26, ROWH = 26, GAP = 6;
   const W = 760, plotW = W - LEFT - RIGHT;
   const H = TOP + entries.length*(ROWH+GAP) + 14;
@@ -546,6 +913,9 @@ function renderChart(){
   const svg = document.createElementNS(NS,"svg");
   svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
   svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.setAttribute("class","sleepchart");
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label","Sleep chart: one row per day from noon to noon; dark bars are night sleep, light bars are naps. The same data appears as a table in the Summary tab.");
   svg.style.maxWidth = "none";
   function S(tag, attrs, text){
     const n = document.createElementNS(NS, tag);
@@ -553,26 +923,23 @@ function renderChart(){
     if (text!=null) n.textContent = text;
     return n;
   }
-  // hour grid + labels every 2h
   const labels = ["Noon","2p","4p","6p","8p","10p","Mid","2a","4a","6a","8a","10a","Noon"];
   for (let i=0;i<=12;i++){
     const gx = x(i*120);
-    svg.append(S("line",{x1:gx,y1:TOP-6,x2:gx,y2:H-10,stroke:"#e3e3ee","stroke-width":1}));
-    svg.append(S("text",{x:gx,y:TOP-12,"text-anchor":"middle","font-size":10.5,fill:"#5a5b7a"},labels[i]));
+    svg.append(S("line",{class:"c-grid",x1:gx,y1:TOP-6,x2:gx,y2:H-10}));
+    svg.append(S("text",{class:"c-glabel",x:gx,y:TOP-12,"text-anchor":"middle","font-size":10.5},labels[i]));
   }
   entries.forEach((e,ri)=>{
     const y = TOP + ri*(ROWH+GAP);
     const c = computeNight(e);
-    svg.append(S("text",{x:LEFT-8,y:y+ROWH/2+4,"text-anchor":"end","font-size":11,fill:"#23244a","font-weight":600}, fmtDateShort(e.date)));
-    svg.append(S("rect",{x:LEFT,y:y,width:plotW,height:ROWH,fill:"#fbfbfe",stroke:"#e3e3ee"}));
+    svg.append(S("text",{class:"c-dlabel",x:LEFT-8,y:y+ROWH/2+4,"text-anchor":"end","font-size":11}, fmtDateShort(e.date)));
+    svg.append(S("rect",{class:"c-rowbg",x:LEFT,y:y,width:plotW,height:ROWH}));
     if (!c.valid) return;
-    // naps
     (e.naps||[]).forEach(n=>{
       if (!(n.asleep && n.woke)) return;
       const s=mfn(n.asleep), w=mfn(n.woke); if (w<=s) return;
-      svg.append(S("rect",{x:x(s),y:y+3,width:x(w)-x(s),height:ROWH-6,fill:"#9b9fe0",rx:2}));
+      svg.append(S("rect",{class:"c-nap",x:x(s),y:y+3,width:x(w)-x(s),height:ROWH-6,rx:2}));
     });
-    // night sleep: onset -> wake, awakenings carved out
     let segs = [[c.on, c.wk]];
     (e.awakenings||[]).forEach(a=>{
       if (!(a.time && a.dur)) return;
@@ -583,12 +950,12 @@ function renderChart(){
       });
     });
     segs.forEach(([s0,s1])=>{
-      if (s1>s0) svg.append(S("rect",{x:x(s0),y:y+3,width:x(s1)-x(s0),height:ROWH-6,fill:"#3b3e8f",rx:2}));
+      if (s1>s0) svg.append(S("rect",{class:"c-night",x:x(s0),y:y+3,width:x(s1)-x(s0),height:ROWH-6,rx:2}));
     });
     // arrows: down = into bed (lights out, nap in-bed), up = out of bed
     function arrow(m, up){
       const ax = x(m), y0 = up ? y+ROWH-2 : y+2, y1 = up ? y+6 : y+ROWH-6;
-      const g = S("g",{stroke:"#23244a","stroke-width":1.6,fill:"none"});
+      const g = S("g",{class:"c-arrow"});
       g.append(S("line",{x1:ax,y1:y0,x2:ax,y2:y1}));
       const tip = up ? y+6 : y+ROWH-6, d = up ? 4 : -4;
       g.append(S("line",{x1:ax-3,y1:tip+d,x2:ax,y2:tip}));
@@ -601,11 +968,22 @@ function renderChart(){
       if (n.out) svg.append(arrow(mfn(n.out),true));
     });
   });
-  const wrap = el("div",{class:"chart-wrap"}); wrap.append(svg);
+  return svg;
+}
+function renderChart(){
+  const v = $("#view-chart"); v.innerHTML = "";
+  const entries = sortedEntries();
+  const card = el("div",{class:"card"});
+  card.append(el("h2",null,"Sleep chart", el("span",{class:"big"},"Each row is one day, noon to noon")));
+  if (!entries.length){
+    card.append(el("div",{class:"empty"},"Add a night in the Diary tab to see the chart."));
+    v.append(card); return;
+  }
+  const wrap = el("div",{class:"chart-wrap"}); wrap.append(buildChartSVG(entries));
   card.append(wrap);
   card.append(el("div",{class:"legend"},
-    el("span",null, el("span",{class:"sw",style:"background:#3b3e8f"}),"Night sleep"),
-    el("span",null, el("span",{class:"sw",style:"background:#9b9fe0"}),"Nap"),
+    el("span",null, el("span",{class:"sw night"}),"Night sleep"),
+    el("span",null, el("span",{class:"sw nap"}),"Nap"),
     el("span",null,"↓ into bed · ↑ out of bed")
   ));
   v.append(card);
@@ -639,8 +1017,14 @@ function renderSummary(){
     el("div",{class:"stat"}, el("div",{class:"v"}, s.nHelp.m.toFixed(1)), el("div",{class:"k"},"Parent interventions per night ("+s.nHelp.tot+" total)")),
     pmStat(s.napSleep.m,"Mean nap sleep / day",null),
     pmStat(s.tst24.m,"Mean 24-hour sleep",null),
-    el("div",{class:"stat"}, el("div",{class:"v"}, sri==null? "—" : sri.toFixed(0)), el("div",{class:"k"},"Sleep Regularity Index (0–100; needs consecutive days)"))
+    el("div",{class:"stat"}, el("div",{class:"v"}, sri==null? "—" : sri.toFixed(0)), el("div",{class:"k"},"Sleep Regularity Index (usually 0–100; needs consecutive days)"))
   ));
+  const cmp = nsfCompare(s.tst24.m);
+  if (cmp){
+    card.append(el("div",{class:"nsf-flag "+cmp.cls},
+      el("b",null,"24-hour sleep vs. age: "), cmp.text,
+      el("div",{class:"hint",style:"margin-top:4px"}, cmp.band.label+" · "+NSF_CITATION)));
+  }
   card.append(el("div",{class:"hint",style:"margin-top:8px"},
     "Bedtime/onset/wake variability is shown as ± SD. Sleep efficiency = night sleep ÷ time in bed."));
   v.append(card);
@@ -648,6 +1032,11 @@ function renderSummary(){
   // per-night table
   const tcard = el("div",{class:"card"});
   tcard.append(el("h2",null,"Night by night"));
+  const sc = el("div",{class:"scrollx"}); sc.append(perNightTable(s));
+  tcard.append(sc);
+  v.append(tcard);
+}
+function perNightTable(s){
   const tbl = el("table",{class:"pernight"});
   tbl.append(el("tr",null, ["Date","Lights out","Asleep","Wake","Out","TST","SE","WASO","Wakes","Helped","Naps"].map(h=>el("th",null,h))));
   s.rows.forEach(r=>{
@@ -661,8 +1050,7 @@ function renderSummary(){
       el("td",null, r.c.nNaps? r.c.nNaps+" ("+dur(r.c.napSleep)+")" : "0")
     ));
   });
-  const sc = el("div",{class:"scrollx"}); sc.append(tbl); tcard.append(sc);
-  v.append(tcard);
+  return tbl;
 }
 
 /* ---------- share view ---------- */
@@ -670,7 +1058,7 @@ function buildTextReport(){
   const s = computeSummary();
   if (!s) return "No complete nights recorded yet.";
   const sri = computeSRI();
-  const who = state.settings.initials || "—";
+  const who = cur().settings.initials || "—";
   const L = [];
   L.push("PEDIATRIC SLEEP DIARY — SUMMARY");
   L.push("Child: "+who+"   Nights: "+s.n+"   "+fmtDate(s.first)+" to "+fmtDate(s.last));
@@ -690,6 +1078,13 @@ function buildTextReport(){
   L.push("  Nap sleep per day: "+dur(s.napSleep.m)+"  ("+s.nNaps.m.toFixed(1)+" naps/day)");
   L.push("  24-h total sleep:  "+dur(s.tst24.m));
   if (sri!=null) L.push("  Sleep Regularity Index: "+sri.toFixed(0)+" / 100");
+  const cmp = nsfCompare(s.tst24.m);
+  if (cmp){
+    L.push("");
+    L.push("SLEEP NEED ("+cmp.band.label+")");
+    L.push("  "+cmp.text);
+    L.push("  "+NSF_CITATION);
+  }
   L.push("");
   L.push("NIGHT BY NIGHT");
   L.push("  Date   LightsOut Asleep  Wake   OutBed  TST    SE   WASO Wakes Help Naps");
@@ -712,16 +1107,17 @@ function buildTextReport(){
 }
 function buildCSV(){
   const rows = sortedEntries();
-  const head = ["date","lights_out","sleep_onset","final_wake","out_of_bed",
+  const head = ["child_initials","date","lights_out","sleep_onset","final_wake","out_of_bed",
     "sol_min","tst_min","tib_min","se_pct","waso_min","n_awakenings","n_parent_interventions",
     "awakenings_detail","n_naps","nap_sleep_min","naps_detail","notes"];
   const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
   const out = [head.join(",")];
+  const who = cur().settings.initials || "";
   rows.forEach(e=>{
     const c = computeNight(e);
     const awd = (e.awakenings||[]).map(a=>a.time+" ("+a.dur+"m, "+(HELP_LABELS[a.help]||a.help)+")").join("; ");
     const npd = (e.naps||[]).map(n=>(n.inBed||"")+"/"+(n.asleep||"")+"-"+(n.woke||"")+"/"+(n.out||"")).join("; ");
-    out.push([e.date, e.lightsOut, e.onset, e.wake, e.outOfBed,
+    out.push([who, e.date, e.lightsOut, e.onset, e.wake, e.outOfBed,
       c.valid?Math.round(c.sol):"", c.valid?Math.round(c.tst):"", c.valid?Math.round(c.tib):"",
       c.valid&&!isNaN(c.se)?c.se.toFixed(1):"", c.valid?Math.round(c.waso):"",
       c.valid?c.nAw:"", c.valid?c.nHelp:"",
@@ -730,12 +1126,62 @@ function buildCSV(){
   });
   return out.join("\n");
 }
+
+/* ---------- print / PDF report ---------- */
+function printReport(){
+  const s = computeSummary();
+  if (!s){ toast("No complete nights to print"); return; }
+  const sri = computeSRI();
+  const box = $("#printReport"); box.innerHTML = "";
+  const who = cur().settings.initials || "—";
+  box.append(
+    el("h1",null,"Pediatric Sleep Diary — Report"),
+    el("div",{class:"prsub"},"Child: "+who+" · "+s.n+" nights · "+fmtDate(s.first)+" – "+fmtDate(s.last)+
+      " · generated "+fmtDate(isoToday())+" · data entered by parent/caregiver")
+  );
+  const stats = el("table",null,
+    el("tr",null, ["Lights out","Sleep onset","Latency","Wake","Midsleep","Night TST","SE","WASO","Wakes/night","Help/night","Naps/day","24-h TST","SRI"].map(h=>el("th",null,h))),
+    el("tr",null,
+      el("td",null,clock(s.lightsOut.m)+(isNaN(s.lightsOut.sd)?"":" ±"+Math.round(s.lightsOut.sd)+"m")),
+      el("td",null,clock(s.onset.m)+(isNaN(s.onset.sd)?"":" ±"+Math.round(s.onset.sd)+"m")),
+      el("td",null,dur(s.sol.m)),
+      el("td",null,clock(s.wake.m)+(isNaN(s.wake.sd)?"":" ±"+Math.round(s.wake.sd)+"m")),
+      el("td",null,clock(s.mid.m)),
+      el("td",null,dur(s.tst.m)),
+      el("td",null,isNaN(s.se.m)?"—":s.se.m.toFixed(0)+"%"),
+      el("td",null,dur(s.waso.m)),
+      el("td",null,s.nAw.m.toFixed(1)),
+      el("td",null,s.nHelp.m.toFixed(1)),
+      el("td",null,s.nNaps.m.toFixed(1)+" ("+dur(s.napSleep.m)+")"),
+      el("td",null,dur(s.tst24.m)),
+      el("td",null,sri==null?"—":sri.toFixed(0))
+    ));
+  box.append(el("h2",null,"Averages"), stats);
+  const cmp = nsfCompare(s.tst24.m);
+  if (cmp){
+    box.append(el("div",{class:"nsf-flag "+cmp.cls},
+      el("b",null,"24-hour sleep vs. age ("+cmp.band.label+"): "), cmp.text, " ", NSF_CITATION));
+  }
+  box.append(el("h2",null,"Sleep chart (each row one day, noon → noon; dark = night sleep, light = nap)"));
+  box.append(buildChartSVG(sortedEntries()));
+  box.append(el("h2",null,"Night by night"));
+  box.append(perNightTable(s));
+  const noted = s.rows.filter(r=>r.e.notes);
+  if (noted.length){
+    box.append(el("h2",null,"Notes"));
+    noted.forEach(r=> box.append(el("div",null, fmtDateShort(r.e.date)+": "+r.e.notes)));
+  }
+  box.append(el("div",{class:"prfoot"},
+    "Definitions: TST = total sleep time; SE = sleep efficiency (TST ÷ time in bed); WASO = wake after sleep onset; SRI = Sleep Regularity Index (Phillips et al., 5-min epochs, consecutive days). Generated by Pediatric Sleep Diary — no data leaves the family's device except reports they share."));
+  window.print();
+}
+
 function renderShare(){
   const v = $("#view-share"); v.innerHTML = "";
   const card = el("div",{class:"card"});
   card.append(el("h2",null,"Share with your sleep clinic"));
   card.append(el("div",{class:"hint",style:"margin:0 0 10px"},
-    "Copy the summary below and paste it into a MyChart message to your child's clinic, or attach the spreadsheet file to an email. Your diary never leaves this device until you do this."));
+    "Copy the summary below and paste it into a MyChart message to your child's clinic, print or save a PDF report (includes the sleep chart), or attach the spreadsheet file to an email. Your diary never leaves this device until you do this."));
   const txt = buildTextReport();
   const pre = el("pre",{class:"export"}, txt);
   card.append(pre);
@@ -747,12 +1193,15 @@ function renderShare(){
         const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
         toast("Select-all done — copy manually");
       }
-    }},"Copy summary"),
+    }},"Copy summary")
+  ));
+  card.append(el("div",{class:"btn-row"},
+    el("button",{class:"btn-secondary",onclick:printReport},"Print / save PDF (with chart)"),
     el("button",{class:"btn-secondary",onclick:()=>{
       const blob = new Blob([buildCSV()],{type:"text/csv"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "sleep-diary-"+(state.settings.initials||"child")+"-"+isoToday()+".csv";
+      a.download = "sleep-diary-"+(cur().settings.initials||"child")+"-"+isoToday()+".csv";
       document.body.append(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
     }},"Download CSV")
@@ -762,8 +1211,10 @@ function renderShare(){
   /* ---- backup card ---- */
   const bk = el("div",{class:"card"});
   bk.append(el("h2",null,"Back up your diary"));
+  const lastLocal = state.meta.lastBackupAt ? "Last backup file: "+new Date(state.meta.lastBackupAt).toLocaleString()+". " : "";
   bk.append(el("div",{class:"hint",style:"margin:0 0 10px"},
-    "The diary lives only on this device. A backup protects it if the browser's data is cleared. Backups stay in YOUR hands — a file you keep, or a file in your own Google Drive."));
+    "The diary lives only on this device. A backup protects it if the browser's data is cleared. "+lastLocal+
+    "Backups stay in YOUR hands — a file you keep, or a file in your own Google Drive. Backups include all children on this device."));
   const fileBtns = el("div",{class:"btn-row"},
     el("button",{class:"btn-secondary",onclick:()=>{
       const blob = new Blob([backupPayload()],{type:"application/json"});
@@ -772,6 +1223,7 @@ function renderShare(){
       a.download = "sleep-diary-backup-"+isoToday()+".json";
       document.body.append(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+      state.meta.lastBackupAt = new Date().toISOString(); saveState();
       toast("Backup file saved");
     }},"Save backup file"),
     el("button",{class:"btn-secondary",onclick:()=>{ $("#restoreFile").click(); }},"Restore from file")
@@ -789,8 +1241,8 @@ function renderShare(){
   bk.append(fileBtns, fileInput);
 
   if (GOOGLE_CLIENT_ID){
-    const last = state.settings.lastDriveBackup
-      ? "Last Drive backup: "+new Date(state.settings.lastDriveBackup).toLocaleString()
+    const last = state.drive.lastBackupAt
+      ? "Last Drive backup: "+new Date(state.drive.lastBackupAt).toLocaleString()
       : "No Drive backup yet.";
     bk.append(el("div",{class:"hint",style:"margin-top:12px"}, last));
     bk.append(el("div",{class:"btn-row"},
@@ -818,41 +1270,14 @@ function renderShare(){
   const danger = el("div",{class:"card"});
   danger.append(el("h2",null,"Start over"));
   danger.append(el("button",{class:"btn-danger",onclick:()=>{
-    if (confirm("Erase the entire diary from this device? This cannot be undone.")){
-      state.entries = {}; saveState(); render(); toast("Diary erased");
+    const who = cur().settings.initials || "this child";
+    if (confirm("Erase all recorded nights for "+who+" from this device? This cannot be undone.")){
+      cur().entries = {}; saveState(); render(); toast("Diary erased");
     }
-  }},"Erase all diary data"));
+  }},"Erase this child's diary data"));
   v.append(danger);
 }
 
-/* ---------- demo data (remove for clinical deployment) ---------- */
-function seedDemo(){
-  if (Object.keys(state.entries).length) return;
-  const base = addDays(isoToday(), -7);
-  const demo = [
-    {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{inBed:"12:40",asleep:"12:55",woke:"14:10",out:"14:15"}]},
-    {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{inBed:"13:00",asleep:"13:10",woke:"14:20",out:"14:25"}]},
-    {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{inBed:"12:30",asleep:"12:50",woke:"13:55",out:"14:00"}]},
-    {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
-    {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{inBed:"12:45",asleep:"13:00",woke:"14:30",out:"14:35"}]},
-    {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{inBed:"13:10",asleep:"13:25",woke:"14:15",out:"14:20"}]},
-    {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{inBed:"12:50",asleep:"13:05",woke:"14:25",out:"14:30"}]}
-  ];
-  demo.forEach((d,i)=>{
-    const date = addDays(base, i);
-    state.entries[date] = { date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
-      awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "" };
-  });
-  state.settings.initials = state.settings.initials || "Demo";
-  saveState();
-}
-
-/* ---------- init ---------- */
-(async function(){
-  await loadState();
-  seedDemo();   // <-- delete this line for clinical deployment
-  render();
-})();
 /* ============================================================
    Backup & restore
    ============================================================ */
@@ -869,22 +1294,46 @@ const DRIVE_FILENAME = "pediatric-sleep-diary-backup.json";
 
 function backupPayload(){
   return JSON.stringify({
-    format:"peds-sleep-diary-backup", version:1,
+    format:"peds-sleep-diary-backup", version:2,
     exported:new Date().toISOString(),
-    settings:state.settings, entries:state.entries
+    activeChild: state.activeChild,
+    children: state.children
   }, null, 1);
 }
 function applyBackup(obj){
-  if (!obj || obj.format!=="peds-sleep-diary-backup" || typeof obj.entries!=="object")
+  if (!obj || obj.format!=="peds-sleep-diary-backup")
     throw new Error("Not a sleep diary backup file.");
   let added=0, updated=0;
-  Object.values(obj.entries).forEach(e=>{
-    if (!e || !e.date) return;
-    if (state.entries[e.date]) updated++; else added++;
-    state.entries[e.date]=e;
-  });
-  if (obj.settings && obj.settings.initials && !state.settings.initials)
-    state.settings.initials = obj.settings.initials;
+  const mergeEntries = (target, entries)=>{
+    Object.values(entries||{}).forEach(e=>{
+      if (!e || !e.date) return;
+      if (target.entries[e.date]) updated++; else added++;
+      target.entries[e.date]=e;
+    });
+  };
+  if (obj.version>=2 && obj.children && typeof obj.children==="object"){
+    Object.keys(obj.children).forEach(id=>{
+      const src = obj.children[id];
+      if (!src || typeof src!=="object") return;
+      if (!state.children[id]){
+        state.children[id] = blankChild();
+        state.children[id].settings = Object.assign(blankChild().settings, src.settings||{});
+      } else if (src.settings){
+        if (src.settings.initials && !state.children[id].settings.initials)
+          state.children[id].settings.initials = src.settings.initials;
+        if (src.settings.ageBand && !state.children[id].settings.ageBand)
+          state.children[id].settings.ageBand = src.settings.ageBand;
+      }
+      mergeEntries(state.children[id], src.entries);
+    });
+  } else if (typeof obj.entries==="object"){
+    /* v1 backup: merge into the active child */
+    mergeEntries(cur(), obj.entries);
+    if (obj.settings && obj.settings.initials && !cur().settings.initials)
+      cur().settings.initials = obj.settings.initials;
+  } else {
+    throw new Error("Not a sleep diary backup file.");
+  }
   saveState();
   return {added, updated};
 }
@@ -915,11 +1364,11 @@ function getDriveToken(){
   });
 }
 async function driveFindFile(token){
-  if (state.settings.driveFileId){
-    const r = await fetch("https://www.googleapis.com/drive/v3/files/"+state.settings.driveFileId+"?fields=id,trashed",
+  if (state.drive.fileId){
+    const r = await fetch("https://www.googleapis.com/drive/v3/files/"+state.drive.fileId+"?fields=id,trashed",
       {headers:{Authorization:"Bearer "+token}});
     if (r.ok){ const f = await r.json(); if (!f.trashed) return f.id; }
-    state.settings.driveFileId = null;
+    state.drive.fileId = null;
   }
   const q = encodeURIComponent("name='"+DRIVE_FILENAME+"' and trashed=false");
   const r = await fetch("https://www.googleapis.com/drive/v3/files?q="+q+"&fields=files(id)",
@@ -946,8 +1395,8 @@ async function driveBackup(){
   }
   if (!r.ok) throw new Error("Drive upload failed ("+r.status+").");
   const f = await r.json();
-  if (f.id){ state.settings.driveFileId = f.id; }
-  state.settings.lastDriveBackup = new Date().toISOString();
+  if (f.id){ state.drive.fileId = f.id; }
+  state.drive.lastBackupAt = new Date().toISOString();
   saveState();
 }
 async function driveRestore(){
@@ -960,6 +1409,20 @@ async function driveRestore(){
   return applyBackup(await r.json());
 }
 
+/* ---------- init ---------- */
+(async function(){
+  /* Ask the browser to keep our storage through cleanup passes. */
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
+  /* Offline support + installability (no-op on file:// or unsupported). */
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")){
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
+  await loadState();
+  /* Write through immediately so IndexedDB (the durable store) holds the
+     current state even if the user never edits this session. */
+  KV.set(STORE_KEY, JSON.stringify(state));
+  render();
+})();
 </script>
 </body>
 </html>

@@ -1,50 +1,81 @@
 # Pediatric Sleep Diary
 
-A single-file web app for parents to track a child's sleep (3–14+ days) and share
-results with their sleep clinic. No server, no accounts: all data stays in the
-parent's browser until the parent exports it (plain-text summary for MyChart,
-CSV for research, JSON/Google Drive for backup).
+A small installable web app (PWA) for parents to track a child's sleep (3–14+ days)
+and share results with their sleep clinic. No server, no accounts: all data stays
+on the parent's phone until the parent exports it (plain-text summary for MyChart,
+printable PDF report with the sleep chart, CSV for research, JSON/Google Drive for
+backup). Works fully offline once opened; supports multiple children per device.
 
-## Files
+## Files (deploy all of them)
 
 - `index.html` — the clinical app. This is what parents use.
-- `demo.html` — identical, but pre-loads 7 nights of sample data on first open
-  (for demonstrating to colleagues). Safe to delete.
+- `sw.js` — service worker: offline support and instant loading. **Bump
+  `CACHE_VERSION` at the top whenever you change `index.html`** so installed
+  phones pick up the update.
+- `manifest.webmanifest` — makes the app installable ("Add to Home Screen").
+- `icon-192.png`, `icon-512.png`, `apple-touch-icon.png` — app icons.
+- `demo.html` — identical app, but pre-loads 7 nights of sample data on first
+  open (for demonstrating to colleagues). Regenerate it after editing
+  `index.html` (it is `index.html` plus one seed `<script>` block). Safe to delete.
 
 ## Deploy on GitHub Pages (~2 minutes)
 
 1. Sign in at github.com → **+** (top right) → **New repository**.
    Name it `sleep-diary`, leave it **Public**, click **Create repository**.
-2. On the new repo page: **uploading an existing file** link → drag in
-   `index.html` (and `demo.html`, `README.md` if you like) → **Commit changes**.
+2. On the new repo page: **uploading an existing file** link → drag in **all
+   the files above** → **Commit changes**.
 3. Repo **Settings** → **Pages** (left sidebar) → under "Build and deployment",
    Source = **Deploy from a branch**, Branch = **main** / **(root)** → **Save**.
 4. Wait ~1 minute. Your app is live at:
    `https://YOUR-USERNAME.github.io/sleep-diary/`
 
-Updating later: edit/replace `index.html` in the repo (the pencil icon or
-re-upload). Pages redeploys automatically. Parents who added it to their home
-screen get the new version on next load — no reinstall.
+Updating later: edit/replace files in the repo (remember the `CACHE_VERSION`
+bump in `sw.js`). Pages redeploys automatically; installed phones get the new
+version on their next online open.
 
 ## Clinic handout (suggested wording)
 
 > 1. Open the camera and scan this QR code (or type the link).
 > 2. **iPhone:** tap Share → "Add to Home Screen." **Android:** tap menu (⋮) →
->    "Add to Home screen." This keeps your diary safe on your phone.
-> 3. Each morning, tap **Add last night** (about 1 minute).
-> 4. At your next visit — or when we ask — open the **Share** tab, tap
->    **Copy summary**, and paste it into a MyChart message to the clinic.
+>    "Add to Home screen" / "Install app." This keeps your diary safe on your
+>    phone and lets it work without internet.
+> 3. Each morning, tap **Add last night** (about 1 minute — it starts from
+>    the previous night's times, so you only change what's different).
+> 4. At your next visit — or when we ask — open the **Share** tab and either
+>    **Copy summary** and paste it into a MyChart message, or
+>    **Print / save PDF** and attach the report.
 
-Generate the QR code from your Pages URL with any QR generator. "Add to Home
-Screen" matters on iPhone: it prevents iOS from purging the diary's storage
-after 7 days of not opening Safari to that site.
+Generate the QR code from your Pages URL with any QR generator.
+
+## What the app does
+
+- **Diary**: one entry per night — lights out, sleep onset, final wake, out of
+  bed, awakenings (time, duration, whether a parent helped), naps, and notes.
+  New entries prefill from the previous night. Missed nights are surfaced as
+  one-tap catch-up chips. Replacing an already-recorded night asks first.
+- **Chart**: Mindell & Owens–style shaded log, one row per day, noon → noon.
+- **Summary**: mean ± SD lights-out / onset / wake / midsleep; sleep latency,
+  night TST, TIB, sleep efficiency (TST÷TIB), WASO, awakenings and parental
+  interventions per night, nap sleep, 24-h TST, Sleep Regularity Index
+  (Phillips et al., 5-min epochs, consecutive days) — plus, if an age group is
+  set, a comparison of mean 24-h sleep against the National Sleep Foundation
+  recommended ranges (Hirshkowitz et al., *Sleep Health* 2015; re-certified by
+  Dzierzewski et al., *Sleep Health* 2026): within recommended / "may be
+  appropriate" / outside.
+- **Share**: copy-paste text summary (MyChart), printable PDF report including
+  the chart, CSV export, JSON backup file, optional Google Drive backup.
+- **Multiple children** per device, each with their own diary, initials, and
+  age group.
 
 ## Privacy / compliance posture
 
 - No data is transmitted to, or stored by, the clinic, Yale, or GitHub.
-  GitHub Pages serves the static page only; it never receives diary entries.
-- Parents are asked for initials only, never names or DOB.
-- Sharing is patient-initiated (paste into MyChart / email attachment),
+  GitHub Pages serves the static files only; it never receives diary entries.
+- Diary data is stored in the browser's IndexedDB (with a localStorage mirror)
+  and the app requests persistent storage so the OS won't silently evict it.
+  "Add to Home Screen" gives the app its own storage partition on iOS.
+- Parents are asked for initials only, never names or DOB (age *group* only).
+- Sharing is patient-initiated (paste into MyChart / PDF / email attachment),
   mirroring existing patient-generated-data workflows.
 - The optional Google Drive backup writes one file to the **parent's own**
   Google account using the `drive.file` scope (the app can only access the one
@@ -61,21 +92,37 @@ after 7 days of not opening Safari to that site.
    Under "Authorized JavaScript origins" add your Pages origin, e.g.
    `https://YOUR-USERNAME.github.io` (origin only — no path).
 5. Copy the client ID into `index.html`: find `const GOOGLE_CLIENT_ID = "";`
-   and paste it between the quotes. Commit.
+   and paste it between the quotes. Commit (and bump `CACHE_VERSION` in `sw.js`).
 6. Before clinic-wide rollout, submit the consent screen for verification;
    unverified apps are capped at ~100 test users and show a warning screen.
 
 ## Data dictionary (CSV export)
 
-One row per night: `date, lights_out, sleep_onset, final_wake, out_of_bed,
-sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
+One row per night: `child_initials, date, lights_out, sleep_onset, final_wake,
+out_of_bed, sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
 n_parent_interventions, awakenings_detail, n_naps, nap_sleep_min, naps_detail,
 notes`. Times are 24-h clock; durations are minutes. Suitable for REDCap import.
 
-Summary metrics shown in-app: mean ± SD lights-out / onset / wake / midsleep;
-mean sleep latency, night TST, TIB, sleep efficiency (TST÷TIB), WASO,
-awakenings and parental interventions per night, nap sleep, 24-h TST, and the
-Sleep Regularity Index (Phillips et al., 5-min epochs, consecutive days).
+## NSF sleep-duration reference values (hours, by age)
+
+| Age group | Recommended | May be appropriate |
+|---|---|---|
+| Newborn 0–3 mo | 14–17 | 11–13, 18–19 |
+| Infant 4–11 mo | 12–15 | 10–11, 16–18 |
+| Toddler 1–2 y | 11–14 | 9–10, 15–16 |
+| Preschool 3–5 y | 10–13 | 8–9, 14 |
+| School age 6–13 y | 9–11 | 7–8, 12 |
+| Teen 14–17 y | 8–10 | 7, 11 |
+| Young adult 18–25 y | 7–9 | 6, 10–11 |
+
+Source: Hirshkowitz M, et al. *Sleep Health* 2015;1(1):40–43; re-certified by
+Dzierzewski JM, et al. *Sleep Health* 2026 (10-year systematic review).
+
+## Brand
+
+Styled with the shared Canapari "Fossil" brand system — see
+[`../brand-styleguide.md`](../brand-styleguide.md). Tokens are pasted into the
+`<style>` block of `index.html`; light and dark themes both supported.
 
 ## License / attribution
 
