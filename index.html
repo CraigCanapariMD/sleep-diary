@@ -1520,6 +1520,15 @@ async function driveRestore(){
   /* Offline support + installability (no-op on file://, in the native
      shell — which is already offline-capable — or unsupported). */
   if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !IS_NATIVE){
+    /* When an updated service worker takes control, reload once so the new
+       version appears on THIS open instead of the next one. Skip if a form
+       is open (reloading would discard the parent's typing) and on first
+       install (no controller yet — nothing stale to replace). */
+    let hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener("controllerchange", ()=>{
+      if (hadController && !editing) location.reload();
+      hadController = true;
+    });
     navigator.serviceWorker.register("sw.js").catch(()=>{});
   }
   await loadState();
