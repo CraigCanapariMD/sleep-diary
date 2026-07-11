@@ -103,6 +103,8 @@ body{
 header.app{
   background:var(--color-accent);color:var(--color-on-accent);
   padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;
+  /* stay under the iOS status bar while content scrolls beneath */
+  position:sticky;top:0;z-index:30;
 }
 header.app h1{margin:0;font-size:19px;font-weight:800;letter-spacing:var(--brand-tracking-h1);font-family:var(--brand-font-heading)}
 header.app .sub{font-size:13.5px;opacity:.85;margin-top:2px;font-family:var(--brand-font-heading)}
@@ -126,13 +128,18 @@ label{display:block;font-size:13px;font-weight:700;color:var(--color-text-muted)
 input[type=date],input[type=time],input[type=number],input[type=text],select,textarea{
   font:inherit;width:100%;padding:9px 10px;border:2px solid var(--color-border);
   border-radius:var(--brand-radius);background:var(--color-bg);color:var(--color-text);
+  /* iOS date/time inputs have an intrinsic width that overflows grid columns
+     unless the native appearance is stripped */
+  -webkit-appearance:none;appearance:none;min-width:0;box-sizing:border-box;
 }
+input[type=date],input[type=time]{display:block;text-align:left;-webkit-text-align:left}
 input:focus,select:focus,textarea:focus{
   outline:none;border-color:var(--color-accent);
   box-shadow:0 0 0 3px rgba(42,125,107,0.18);
 }
 textarea{resize:vertical;min-height:54px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2>div{min-width:0}
 .sub-item{border:1px dashed var(--color-border);border-radius:var(--brand-radius);padding:10px;margin-top:8px;background:var(--color-bg)}
 .sub-item .rm{float:right}
 .hint{font-size:13.5px;color:var(--color-text-muted);margin-top:4px}
@@ -879,8 +886,10 @@ function entryForm(existing, presetDate){
 
   card.append(
     el("label",null,"Date (the evening the night began)"),
-    el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}),
-    prev ? el("div",{class:"hint"},"Times start from your last entry ("+fmtDate(prev.date)+") — adjust what changed.") : null,
+    el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}));
+  /* DOM append() coerces null to the string "null" — only add the hint when it exists */
+  if (prev) card.append(el("div",{class:"hint"},"Times start from your last entry ("+fmtDate(prev.date)+") — adjust what changed."));
+  card.append(
     el("div",{class:"grid2"},
       timeField("Lights out / put in bed","lightsOut",{defaultVal:"20:00",cascadeTo:"onset"}),
       timeField("Fell asleep (your best guess)","onset",{defaultVal:"20:00"}),
