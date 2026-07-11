@@ -971,8 +971,11 @@ function entryForm(existing, presetDate){
    Shared by the Chart tab and the print report. Colors come from CSS
    classes so they follow the light/dark theme (and print palette). */
 function buildChartSVG(entries){
-  const LEFT = 64, RIGHT = 10, TOP = 26, ROWH = 26, GAP = 6;
-  const W = 760, plotW = W - LEFT - RIGHT;
+  /* W must fit inside the content column (main max-width minus card
+     padding) so the full noon-to-noon axis is visible without horizontal
+     scrolling on desktop; phones still scroll the wrap. */
+  const LEFT = 58, RIGHT = 22, TOP = 26, ROWH = 26, GAP = 6;
+  const W = 618, plotW = W - LEFT - RIGHT;
   const H = TOP + entries.length*(ROWH+GAP) + 14;
   const x = m => LEFT + (m/1440)*plotW;
   const NS = "http://www.w3.org/2000/svg";
