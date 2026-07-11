@@ -126,6 +126,8 @@ Styled with the shared Canapari "Fossil" brand system — see
 
 ## License / attribution
 
-Chart format inspired by the Mindell & Owens pediatric sleep log. The app code
-may be reused by other institutions; add a license file (MIT suggested) before
-publicizing.
+Open source under the [MIT License](LICENSE) — clinics and other institutions
+are free to use, modify, and rehost this app (attribution in the license file
+must be kept). Chart format inspired by the Mindell & Owens pediatric sleep log.
+Not a medical device; provides no diagnosis or treatment advice. NSF reference
+values are cited in the app and above.
