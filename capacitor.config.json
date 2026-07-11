@@ -1,0 +1,17 @@
+{
+  "appId": "com.drcraigcanapari.sleepdiary",
+  "appName": "Sleep Diary",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "automatic"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#2A7D6B"
+    }
+  }
+}

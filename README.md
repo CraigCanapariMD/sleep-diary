@@ -18,7 +18,13 @@ backup). Works fully offline once opened; supports multiple children per device.
   open (for demonstrating to colleagues). Regenerate it after editing
   `index.html` (it is `index.html` plus one seed `<script>` block). Safe to delete.
 
-## Deploy on GitHub Pages (~2 minutes)
+## How families use it (no accounts, nothing to install from a store)
+
+Parents scan a QR code or open the clinic's link, then "Add to Home Screen."
+That's it — no GitHub, no app store, no sign-up. Everything below this point
+is for the **clinician or developer** hosting the app.
+
+## Deploy on GitHub Pages (~2 minutes, one-time, clinician/developer only)
 
 1. Sign in at github.com → **+** (top right) → **New repository**.
    Name it `sleep-diary`, leave it **Public**, click **Create repository**.

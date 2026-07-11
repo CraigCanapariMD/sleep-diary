@@ -278,6 +278,16 @@ pre.export{
    so plain arithmetic means/SDs are valid.
    ============================================================ */
 
+/* ---------- native shell (Capacitor) detection ----------
+   The same file runs three ways: web page, installed PWA, and inside the
+   Capacitor iOS/Android shell. Native-only features (reminder notifications,
+   share sheet) feature-detect so the web build is untouched. */
+const CAP = window.Capacitor;
+const IS_NATIVE = !!(CAP && CAP.isNativePlatform && CAP.isNativePlatform());
+function capPlugin(name){
+  return (IS_NATIVE && CAP.Plugins && CAP.Plugins[name]) ? CAP.Plugins[name] : null;
+}
+
 /* ---------- storage: IndexedDB primary, localStorage mirror ----------
    iOS evicts localStorage far more readily than IndexedDB; we write both
    and read whichever survives. navigator.storage.persist() asks the
@@ -331,7 +341,8 @@ let state = null;
 function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{} }; }
 function blankState(){
   return { version:2, activeChild:"c1", children:{ c1: blankChild() },
-           meta:{ lastBackupAt:null }, drive:{ fileId:null, lastBackupAt:null } };
+           meta:{ lastBackupAt:null, reminder:{ enabled:false, time:"07:00" } },
+           drive:{ fileId:null, lastBackupAt:null } };
 }
 function migrateState(s){
   if (!s || typeof s!=="object") return blankState();
@@ -339,6 +350,7 @@ function migrateState(s){
     if (!s.children || !Object.keys(s.children).length) s.children = { c1: blankChild() };
     if (!s.children[s.activeChild]) s.activeChild = Object.keys(s.children)[0];
     if (!s.meta) s.meta = { lastBackupAt:null };
+    if (!s.meta.reminder) s.meta.reminder = { enabled:false, time:"07:00" };
     if (!s.drive) s.drive = { fileId:null, lastBackupAt:null };
     Object.values(s.children).forEach(c=>{
       if (!c.settings) c.settings = { initials:"", ageBand:"" };
@@ -601,6 +613,42 @@ function headerSub(){
   return who + (n ? n + (n===1?" night":" nights") + " recorded" : "Track your child's sleep, night by night");
 }
 
+/* ---------- native: daily reminder notification ----------
+   Local-only (no server): the shell schedules a repeating notification on
+   the phone itself. No-op on the web / PWA builds. */
+async function applyReminder(){
+  const LN = capPlugin("LocalNotifications");
+  if (!LN) return;
+  const r = state.meta.reminder;
+  try { await LN.cancel({ notifications:[{ id:1 }] }); } catch(e){}
+  if (!r.enabled) return;
+  const perm = await LN.requestPermissions();
+  if (!perm || perm.display !== "granted"){
+    r.enabled = false; saveState();
+    toast("Notifications are blocked for this app");
+    return;
+  }
+  const [h,m] = (r.time||"07:00").split(":").map(Number);
+  await LN.schedule({ notifications:[{
+    id:1,
+    title:"Sleep diary",
+    body:"Add last night — it takes about a minute.",
+    schedule:{ on:{ hour:h, minute:m }, allowWhileIdle:true }
+  }]});
+}
+
+/* ---------- native: share a file via the OS share sheet ----------
+   Blob-anchor downloads don't work inside the native webview; write the
+   file to the app cache and hand it to the share sheet instead.
+   Returns false on web so callers fall back to the download link. */
+async function shareFileNative(filename, data){
+  const FS = capPlugin("Filesystem"), SH = capPlugin("Share");
+  if (!FS || !SH) return false;
+  const res = await FS.writeFile({ path:filename, data, directory:"CACHE", encoding:"utf8" });
+  await SH.share({ title:filename, url:res.uri });
+  return true;
+}
+
 /* ---------- diary view ---------- */
 let editing = null;      // date being edited, or "__new__"
 let newEntryDate = null; // preset date when adding a missed night
@@ -678,6 +726,23 @@ function renderDiary(){
         el("option",{value:k, ...(cur().settings.ageBand===k?{selected:""}:{})}, AGE_BANDS[k].label))),
     el("div",{class:"hint"},"Everything you enter stays on this device until you choose to share it.")
   );
+  if (IS_NATIVE){
+    const r = state.meta.reminder;
+    const timeInp = el("input",{type:"time", value:r.time||"07:00", style:"max-width:140px",
+      oninput:ev=>{ r.time = ev.target.value || "07:00"; saveState(); if (r.enabled) applyReminder(); }});
+    setup.append(
+      el("label",null,"Daily reminder (a notification on this phone only)"),
+      el("div",{style:"display:flex;gap:8px;align-items:center"},
+        timeInp,
+        el("button",{class: r.enabled ? "btn-primary" : "btn-secondary", style:"width:auto;flex:0 0 auto",
+          onclick:async ev=>{
+            r.enabled = !r.enabled; saveState();
+            await applyReminder();
+            renderDiary();
+            if (r.enabled && state.meta.reminder.enabled) toast("Reminder set for "+clockFromHM(r.time||"07:00"));
+          }}, r.enabled ? "Reminder on" : "Turn on"))
+    );
+  }
   if (ids.length > 1){
     setup.append(el("button",{class:"btn-danger",style:"margin-top:8px;padding-left:0",onclick:()=>{
       const c = cur();
@@ -1161,15 +1226,20 @@ function renderShare(){
     }},"Copy summary")
   ));
   card.append(el("div",{class:"btn-row"},
-    el("button",{class:"btn-secondary",onclick:printReport},"Print / save PDF (with chart)"),
-    el("button",{class:"btn-secondary",onclick:()=>{
+    /* window.print() is unavailable inside the native webview; the share
+       sheet + copy-summary cover the native path until a print plugin lands */
+    IS_NATIVE ? null : el("button",{class:"btn-secondary",onclick:printReport},"Print / save PDF (with chart)"),
+    el("button",{class:"btn-secondary",onclick:async()=>{
+      const name = "sleep-diary-"+(cur().settings.initials||"child")+"-"+isoToday()+".csv";
+      try { if (await shareFileNative(name, buildCSV())) return; }
+      catch(err){ toast("Could not share the file"); return; }
       const blob = new Blob([buildCSV()],{type:"text/csv"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "sleep-diary-"+(cur().settings.initials||"child")+"-"+isoToday()+".csv";
+      a.download = name;
       document.body.append(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
-    }},"Download CSV")
+    }}, IS_NATIVE ? "Share CSV" : "Download CSV")
   ));
   v.append(card);
 
@@ -1181,16 +1251,23 @@ function renderShare(){
     "The diary lives only on this device. A backup protects it if the browser's data is cleared. "+lastLocal+
     "Backups stay in YOUR hands — a file you keep, or a file in your own Google Drive. Backups include all children on this device."));
   const fileBtns = el("div",{class:"btn-row"},
-    el("button",{class:"btn-secondary",onclick:()=>{
+    el("button",{class:"btn-secondary",onclick:async()=>{
+      const name = "sleep-diary-backup-"+isoToday()+".json";
+      try {
+        if (await shareFileNative(name, backupPayload())){
+          state.meta.lastBackupAt = new Date().toISOString(); saveState();
+          return;
+        }
+      } catch(err){ toast("Could not share the file"); return; }
       const blob = new Blob([backupPayload()],{type:"application/json"});
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = "sleep-diary-backup-"+isoToday()+".json";
+      a.download = name;
       document.body.append(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
       state.meta.lastBackupAt = new Date().toISOString(); saveState();
       toast("Backup file saved");
-    }},"Save backup file"),
+    }}, IS_NATIVE ? "Share backup file" : "Save backup file"),
     el("button",{class:"btn-secondary",onclick:()=>{ $("#restoreFile").click(); }},"Restore from file")
   );
   const fileInput = el("input",{type:"file",id:"restoreFile",accept:".json,application/json",style:"display:none",
@@ -1316,6 +1393,10 @@ function loadGIS(){
 }
 function getDriveToken(){
   return new Promise(async (res,rej)=>{
+    if (IS_NATIVE){
+      rej(new Error("Google Drive backup isn't available in the app yet — use “Share backup file” instead."));
+      return;
+    }
     try { await loadGIS(); } catch(e){ rej(e); return; }
     if (!(window.google && google.accounts && google.accounts.oauth2)){
       rej(new Error("Google sign-in unavailable in this environment.")); return;
@@ -1378,14 +1459,17 @@ async function driveRestore(){
 (async function(){
   /* Ask the browser to keep our storage through cleanup passes. */
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch(e){}
-  /* Offline support + installability (no-op on file:// or unsupported). */
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  /* Offline support + installability (no-op on file://, in the native
+     shell — which is already offline-capable — or unsupported). */
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http") && !IS_NATIVE){
     navigator.serviceWorker.register("sw.js").catch(()=>{});
   }
   await loadState();
   /* Write through immediately so IndexedDB (the durable store) holds the
      current state even if the user never edits this session. */
   KV.set(STORE_KEY, JSON.stringify(state));
+  /* Re-assert the daily reminder in the native shell (survives OS cleanups). */
+  if (IS_NATIVE && state.meta.reminder.enabled) applyReminder().catch(()=>{});
   render();
 })();
 </script>

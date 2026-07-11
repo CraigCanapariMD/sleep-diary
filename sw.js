@@ -2,7 +2,7 @@
    Cache-first app shell so the diary opens instantly and fully offline
    (parents log at 6 AM with no signal). Bump CACHE_VERSION on any release
    so installed phones pick up the new files on their next online visit. */
-const CACHE_VERSION = "peds-sleep-diary-v2.0.0";
+const CACHE_VERSION = "peds-sleep-diary-v2.1.0";
 const ASSETS = [
   "./",
   "./index.html",

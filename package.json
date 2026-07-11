@@ -1,0 +1,30 @@
+{
+  "name": "pediatric-sleep-diary",
+  "version": "2.0.0",
+  "description": "Privacy-first pediatric sleep diary: installable web app (PWA) plus Capacitor iOS/Android shell. All data stays on the parent's device.",
+  "license": "MIT",
+  "author": "Craig Canapari, MD",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "sync": "npm run build && npx cap sync",
+    "ios": "npm run sync && npx cap open ios",
+    "android": "npm run sync && npx cap open android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CraigCanapariMD/sleep-diary.git"
+  },
+  "homepage": "https://github.com/CraigCanapariMD/sleep-diary#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/ios": "^8.4.1",
+    "@capacitor/local-notifications": "^8.2.0",
+    "@capacitor/share": "^8.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.1"
+  }
+}
