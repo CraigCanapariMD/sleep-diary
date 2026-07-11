@@ -136,3 +136,13 @@ vs. weekend nights) to be built *with the author's teenage sons as credited
 co-developers* — giving them shipped, public, open-source work for their CVs.
 For the talk, this becomes the closing slide: the tool didn't just solve a
 clinic problem, it became a family software apprenticeship.
+
+### 2026-07-11 (evening) — demo sandboxing + "your data lives here" copy
+Physician QA again: the demo link showed his real diary. Root cause — demo
+and app share a browser origin, so they shared storage; a new family opening
+the demo first would have started their real diary polluted with sample data.
+Demo now uses its own storage key (fully sandboxed, verified). Also added
+plain-language copy in-app and in the clinic handout: the diary lives only on
+this phone in this browser — it won't appear on other devices; use backups.
+Talking point: "local-only data" is a privacy win parents must be TOLD about,
+or it reads as a bug.

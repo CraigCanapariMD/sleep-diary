@@ -4,6 +4,8 @@
 
 - **App:** https://craigcanaparimd.github.io/sleep-diary/
 - **Demo (preloaded with 7 nights of sample data):** https://craigcanaparimd.github.io/sleep-diary/demo.html
+  — uses its own separate storage, so it never shows or touches a real diary
+  on the same phone
 - **Sample exports** — what the clinic receives: [text summary](examples/sample-summary.txt) · [CSV](examples/sample-export.csv) · [PDF report](examples/sample-report.pdf)
 - **Open source** under the [MIT license](LICENSE): [github.com/CraigCanapariMD/sleep-diary](https://github.com/CraigCanapariMD/sleep-diary)
 
@@ -57,6 +59,10 @@ version on their next online open.
 > 4. At your next visit — or when we ask — open the **Share** tab and either
 >    **Copy summary** and paste it into a MyChart message, or
 >    **Print / save PDF** and attach the report.
+> 5. The diary is saved **only on your phone** — it is never uploaded, and it
+>    won't appear on another device or in a different browser. Keep using the
+>    same phone and browser/app icon, and save a backup now and then from the
+>    Share tab.
 
 Generate the QR code from your Pages URL with any QR generator.
 

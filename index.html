@@ -786,7 +786,8 @@ function renderDiary(){
       el("option",{value:""},"Not set — no comparison shown"),
       Object.keys(AGE_BANDS).map(k=>
         el("option",{value:k, ...(cur().settings.ageBand===k?{selected:""}:{})}, AGE_BANDS[k].label))),
-    el("div",{class:"hint"},"Everything you enter stays on this device until you choose to share it.")
+    el("div",{class:"hint"},
+      "Everything you enter is saved only on this phone, in this browser or app — it is never uploaded anywhere. That also means the diary won't appear if you open the link on another device or in a different browser: keep using the same one, and use the Share tab's backup to move or protect your data.")
   );
   if (IS_NATIVE){
     const r = state.meta.reminder;
