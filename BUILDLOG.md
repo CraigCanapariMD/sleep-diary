@@ -129,3 +129,10 @@ summary, CSV, and the one-page PDF report — generated via a new `?print` URL
 mode (also handy for automated report snapshots). Commits `cb57425`…this one.
 Talking point: the sample PDF in examples/ is the single best "here's what
 your clinic receives" slide asset.
+
+Roadmap decision made today: a **teen self-report version** (first-person
+language, self-entry, evening device/screen use and caffeine fields, school
+vs. weekend nights) to be built *with the author's teenage sons as credited
+co-developers* — giving them shipped, public, open-source work for their CVs.
+For the talk, this becomes the closing slide: the tool didn't just solve a
+clinic problem, it became a family software apprenticeship.

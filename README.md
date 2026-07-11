@@ -137,6 +137,24 @@ Styled with the shared Canapari "Fossil" brand system — see
 [`../brand-styleguide.md`](../brand-styleguide.md). Tokens are pasted into the
 `<style>` block of `index.html`; light and dark themes both supported.
 
+## Roadmap
+
+- **Teen self-report version** — a variant written *for adolescents, not
+  parents*: first-person language, self-entry each morning, and fields that
+  matter clinically for teens — evening device/screen use (what, until when,
+  in bed or not), caffeine, school night vs. weekend patterns. The existing
+  metrics (midsleep, SRI, weekday/weekend drift) are especially relevant to
+  adolescent delayed sleep phase. Planned as a collaboration with two teenage
+  co-developers (the author's sons), who will contribute as named,
+  credited contributors on this public repo — real shipped open-source work.
+  Open question: teen *mode* inside this app (shared codebase, shared fixes)
+  vs. a separate teen-owned fork; leaning mode-plus-credit, decide when work
+  starts.
+- **App Store / Google Play releases** via the Capacitor shell already in
+  this repo (see [NATIVE.md](NATIVE.md)) — enables reliable daily reminder
+  notifications.
+- **Clinic pilot** — QR handout, feedback from real families, then iterate.
+
 ## License / attribution
 
 Open source under the [MIT License](LICENSE) — clinics and other institutions
