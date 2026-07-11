@@ -656,6 +656,48 @@ async function shareFileNative(filename, data){
   return true;
 }
 
+/* ---------- install prompt ----------
+   Android/Chrome fires beforeinstallprompt, letting us offer a one-tap
+   install. iOS has no install API — Apple requires the manual
+   Share → Add to Home Screen, so we show instructions instead. */
+let installPromptEvent = null;
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  installPromptEvent = e;
+  const onDiary = document.querySelector("nav.tabs button.active")?.dataset.tab === "diary";
+  if (onDiary && !editing) renderDiary();
+});
+function isStandalone(){
+  return window.matchMedia("(display-mode: standalone)").matches
+      || window.navigator.standalone === true;
+}
+function installBanner(){
+  if (IS_NATIVE || isStandalone() || state.meta.installDismissed) return null;
+  const isiOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const b = el("div",{class:"banner"});
+  b.append(el("b",null,"Add this diary to your home screen. "),
+    "It becomes an app icon, works without internet, and keeps your entries safe on this phone.");
+  const row = el("div",{style:"display:flex;gap:8px"});
+  if (installPromptEvent){
+    row.append(el("button",{class:"btn-primary",style:"width:auto",onclick:async()=>{
+      const evt = installPromptEvent; installPromptEvent = null;
+      try { await evt.prompt(); } catch(e){}
+      renderDiary();
+    }},"Install app"));
+  } else if (isiOS){
+    b.append(el("div",{class:"hint",style:"margin-top:6px"},
+      "Tap the Share button (the square with an arrow, at the bottom of Safari), scroll down, and choose “Add to Home Screen.”"));
+  } else {
+    b.append(el("div",{class:"hint",style:"margin-top:6px"},
+      "In your browser's menu, choose “Add to Home Screen” or “Install app.”"));
+  }
+  row.append(el("button",{class:"btn-secondary",onclick:()=>{
+    state.meta.installDismissed = true; saveState(); renderDiary();
+  }},"Not now"));
+  b.append(row);
+  return b;
+}
+
 /* ---------- diary view ---------- */
 let editing = null;      // date being edited, or "__new__"
 let newEntryDate = null; // preset date when adding a missed night
@@ -689,6 +731,10 @@ function renderDiary(){
     v.append(entryForm(editing === "__new__" ? null : cur().entries[editing], preset));
     return;
   }
+
+  /* install prompt (browser only; hidden once installed or dismissed) */
+  const inst = installBanner();
+  if (inst) v.append(inst);
 
   /* backup nudge */
   if (backupDue()){
