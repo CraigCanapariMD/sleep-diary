@@ -197,7 +197,9 @@ additional small-practice grant](LICENSE). In plain English:
   research institutions (including rehosting and modifying the app —
   keep the license file and copyright notice).
 - **Also free**: direct patient care by any practice with **five or fewer
-  licensed clinicians**, regardless of profit status.
+  licensed clinicians**, regardless of profit status. (Care must be
+  delivered by licensed clinicians — this tier doesn't cover coaching or
+  consulting services.)
 - **Commercial license required** (contact canapari@gmail.com): patient care
   in larger for-profit healthcare organizations, and incorporating this
   software into any paid product or service (apps, platforms, EHR
