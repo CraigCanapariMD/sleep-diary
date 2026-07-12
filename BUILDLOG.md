@@ -147,6 +147,12 @@ this phone in this browser — it won't appear on other devices; use backups.
 Talking point: "local-only data" is a privacy win parents must be TOLD about,
 or it reads as a bug.
 
+
+### Picking up dinner after working on this all afternoon
+Came up with some more ideas-- 1-3 below; the money one was #3-- pushing clinician plans. After seeing Claude's plan, changed the license
+
+
+
 ### 2026-07-11 (night) — roadmap session: three directions specced
 No code changed (no CACHE_VERSION bump needed). Wrote full specs for the
 three roadmap directions into `docs/specs/` and linked them from the README:
