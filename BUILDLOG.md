@@ -146,3 +146,81 @@ plain-language copy in-app and in the clinic handout: the diary lives only on
 this phone in this browser — it won't appear on other devices; use backups.
 Talking point: "local-only data" is a privacy win parents must be TOLD about,
 or it reads as a bug.
+
+### 2026-07-11 (night) — roadmap session: three directions specced
+No code changed (no CACHE_VERSION bump needed). Wrote full specs for the
+three roadmap directions into `docs/specs/` and linked them from the README:
+
+1. **REDCap research backend** — resolved the core tension (local-first app
+   vs. research data capture) with opt-in research mode; Phase A is just a
+   shipped REDCap data dictionary + an "Export for research" CSV variant
+   (record_id / repeat-instance columns, initials & notes stripped), Phase B
+   a stateless serverless relay so the REDCap API token never ships in the
+   world-readable app.
+2. **Teen screen-time tracking** — ≤3-tap morning capture (screen-off time,
+   in bed y/n), rendered as a glyph on the chart rows so screen-off sits
+   visually next to sleep onset; "juxtaposition, not judgment" is the design
+   principle. Scoped into four separable PRs for the teen co-developers.
+3. **Clinician-pushed plans** — the sleeper favorite: a static plan.html
+   builder emits a QR/link with the plan JSON in the URL *fragment* (never
+   hits any server, PHI-safe by construction); the diary shows tonight's
+   computed targets while logging, stair-steps bedtime-fading targets on the
+   chart, and adds an adherence table to the PDF report.
+
+Judgment call for the talk: all three were designed to preserve the app's
+"no server, no accounts" posture — plans travel by QR, research needs a
+deliberate opt-in, and the only new infrastructure anywhere (the REDCap
+relay) is owned by the study team, not the app. Session run as a spec-writing
+sprint on the last day of the Fable model preview.
+
+### 2026-07-11 (night, cont.) — plan builder mockup
+Answered "what would the clinician interface look like?" with a working
+high-fidelity mockup: `docs/specs/plan-builder-mockup.html` (Fossil-branded,
+self-contained, clearly flagged as a mockup). Five form cards (who/when,
+targets, bedtime fading, checklist chips, family note) beside a sticky live
+preview: a phone frame showing the exact plan strip the family will see in
+the diary's morning entry, a stair-step SVG of the fading schedule, and the
+generated link + byte count (~500 bytes) with an illustrative QR. Verified in
+the browser: fade math computes "reaches 9:30 PM target on night 13," chips
+live-update the phone preview and payload size. Real QR encoder (MIT
+qrcodegen) to be vendored when this graduates from mockup to plan.html.
+Talking point: the clinician tool is itself serverless — the "backend" for
+pushing a treatment plan is a URL fragment.
+
+### 2026-07-11 (late night) — protocol templates & education packs
+Craig's idea, immediately specced and mocked: the plan builder shouldn't
+start blank. New `docs/specs/protocol-templates.md` — named protocols
+(bedtime fading, graduated extinction, camping out; phase advance and
+chronotherapy for teen DSPS) prefill the whole builder, paired with
+night-keyed "what to expect" education shown in the family's diary. Key
+architecture: **parameters travel in the QR capsule; education content ships
+with the app** (versioned packs, e.g. `gradext@1`), so capsules stay ~500-700
+bytes and clinical text stays curated and citable in-repo. Mockup upgraded to
+match: protocol picker with five working prefills, a supervision warning
+banner on chronotherapy, and a `delay` mode in the fade engine — real modular
+around-the-clock math ("3:00 AM, 3 h later every night, reaches 9:30 PM on
+night 8"). Caught a genuine clinical bug in preview: the wake time stayed
+anchored at 7 AM mid-chronotherapy; fixed so the whole sleep window shifts
+together (night 1: 3:00 AM–12:30 PM). Dev war story for the talk: the diary's
+own service worker (registered when the preview opened the app root) kept
+serving a stale mockup during testing — the offline feature biting its own
+developer.
+
+### 2026-07-11 (license change) — MIT → PolyForm Noncommercial + small-practice grant
+Craig's call after a real business-model discussion: the diary (and
+especially the upcoming plan-builder/protocol tech) stays free for families,
+nonprofits, academia, government, research, AND any practice with ≤5
+licensed clinicians regardless of profit status — but larger for-profit
+groups using it in patient care, and anyone building it into a paid product,
+need a commercial license (canapari@gmail.com). Implementation: LICENSE is
+now PolyForm Noncommercial 1.0.0 (verbatim, fetched from the canonical repo)
+with an "additional grant" section on top — clinician headcount chosen over
+revenue thresholds because even a solo pediatric practice clears typical
+small-business revenue caps. Pre-2026-07-11 versions remain MIT (that grant
+can't be revoked). README/package.json updated; "open source" wording
+changed to "source-available" throughout. Timing was deliberate: relicensing
+is trivial while there's exactly one copyright holder — after the boys'
+credited contributions land, any change needs every contributor's sign-off.
+Talking point: licenses enforce themselves through big organizations'
+compliance departments — the small honest users you'd never chase are
+exactly the ones you exempted anyway.

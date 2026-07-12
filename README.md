@@ -7,7 +7,11 @@
   — uses its own separate storage, so it never shows or touches a real diary
   on the same phone
 - **Sample exports** — what the clinic receives: [text summary](examples/sample-summary.txt) · [CSV](examples/sample-export.csv) · [PDF report](examples/sample-report.pdf)
-- **Open source** under the [MIT license](LICENSE): [github.com/CraigCanapariMD/sleep-diary](https://github.com/CraigCanapariMD/sleep-diary)
+- **Source-available** under the [PolyForm Noncommercial license](LICENSE) —
+  free for families, nonprofits, academic/government institutions, research,
+  and small clinical practices (≤5 clinicians); larger for-profit
+  organizations and commercial products need a
+  [commercial license](LICENSE): [github.com/CraigCanapariMD/sleep-diary](https://github.com/CraigCanapariMD/sleep-diary)
 
 A small installable web app (PWA) for parents to track a child's sleep (3–14+ days)
 and share results with their sleep clinic. No server, no accounts: all data stays
@@ -145,6 +149,28 @@ Styled with the shared Canapari "Fossil" brand system — see
 
 ## Roadmap
 
+Three directions now have full written specs in [`docs/specs/`](docs/specs/):
+
+- **[Clinician-pushed sleep plans](docs/specs/clinician-plan-push.md)** — a
+  physician/psychologist/sleep coach builds a plan (targets, bedtime-fading
+  schedule, nightly checklist) on a static `plan.html` page and hands it to
+  the family as a QR code / link; the diary then shows tonight's targets
+  while logging, overlays them on the chart, and reports adherence back on
+  the PDF. No server — the plan travels in the URL fragment. Extended by
+  **[protocol templates & education packs](docs/specs/protocol-templates.md)**:
+  prefilled sleep-training methods (bedtime fading, graduated extinction,
+  camping out) and delayed-sleep-phase protocols (phase advance,
+  chronotherapy) with night-keyed "what to expect" content for families.
+- **[Teen screen-time tracking](docs/specs/teen-screen-time.md)** — part of
+  the teen version below: last-screen-off time and screens-in-bed captured in
+  ≤3 taps, rendered on the sleep chart next to sleep onset, with
+  screen-to-sleep buffer and school/weekend stats in the summary.
+- **[REDCap research backend](docs/specs/redcap-research-backend.md)** —
+  Phase A ships a REDCap data dictionary + "Export for research" CSV (no
+  infrastructure); Phase B adds opt-in enrollment via QR and one-tap "Send to
+  study" through a tiny stateless relay that keeps the API token off the
+  client.
+
 - **Teen self-report version** — a variant written *for adolescents, not
   parents*: first-person language, self-entry each morning, and fields that
   matter clinically for teens — evening device/screen use (what, until when,
@@ -163,8 +189,21 @@ Styled with the shared Canapari "Fossil" brand system — see
 
 ## License / attribution
 
-Open source under the [MIT License](LICENSE) — clinics and other institutions
-are free to use, modify, and rehost this app (attribution in the license file
-must be kept). Chart format inspired by the Mindell & Owens pediatric sleep log.
-Not a medical device; provides no diagnosis or treatment advice. NSF reference
+Source-available under the [PolyForm Noncommercial License 1.0.0 with an
+additional small-practice grant](LICENSE). In plain English:
+
+- **Always free**: families and personal use; nonprofit and academic
+  hospitals and clinics; educational, government, public-health, and
+  research institutions (including rehosting and modifying the app —
+  keep the license file and copyright notice).
+- **Also free**: direct patient care by any practice with **five or fewer
+  licensed clinicians**, regardless of profit status.
+- **Commercial license required** (contact canapari@gmail.com): patient care
+  in larger for-profit healthcare organizations, and incorporating this
+  software into any paid product or service (apps, platforms, EHR
+  integrations, coaching programs, white-labels) at any size.
+
+Versions published on or before 2026-07-11 were MIT-licensed and remain so.
+Chart format inspired by the Mindell & Owens pediatric sleep log. Not a
+medical device; provides no diagnosis or treatment advice. NSF reference
 values are cited in the app and above.

@@ -2,7 +2,7 @@
   "name": "pediatric-sleep-diary",
   "version": "2.0.0",
   "description": "Privacy-first pediatric sleep diary: installable web app (PWA) plus Capacitor iOS/Android shell. All data stays on the parent's device.",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "author": "Craig Canapari, MD",
   "type": "module",
   "scripts": {
