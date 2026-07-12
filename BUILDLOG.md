@@ -267,6 +267,48 @@ download blob, checked every computed metric by hand (SOL 20 min, SE 94.1%
 instrument in one commit, because the CSV schema was designed for it from
 day one.
 
+### 2026-07-12 — Consultant SaaS groundwork (spec only, no code)
+Strategy session: ruled OUT hosted-PHI/HIPAA territory for the foreseeable
+future (business-associate liability isn't worth it; clinicians already have
+the MyChart export and the REDCap path). Ruled IN a commercial track aimed at
+sleep consultants — not covered entities, real caseload-tracking pain, and
+the PolyForm NC license already reserves monetized products. Wrote
+`docs/specs/consultant-sync.md`: invite-code/QR connect flow (same pattern
+as plan capsules), pseudonymous sync as idempotent upserts on
+(shareCode, date) — which falls out of the existing backup-v2/merge design —
+family app stays local-first with no accounts, dashboard + backend to live
+in a separate private repo. Phasing starts with demand validation using
+demo.html before any code. Also queued: a Yale Ventures conversation before
+the product takes money. Zero changes to index.html; CACHE_VERSION untouched.
+Talking point: the app's "no server" constraint turned out to be the design
+asset — sync bolts on as an outbox, not a rewrite.
+
+### 2026-07-12 (later) — Adversarial review + data-loss hardening + sync Phase 1
+Went hunting for bugs in index.html and found a real data-loss one: restoring
+a backup on a new phone silently dropped the clinician plan and study code
+(applyBackup only merged entries+settings) — fixed; `sync` consent
+deliberately does NOT restore, it belongs to the device where it was given.
+Storage hardening: state now carries meta.savedAt and load keeps the NEWER
+of IndexedDB vs localStorage (before, a stale IndexedDB copy silently beat a
+fresher localStorage one); the debounced save flushes on pagehide/
+visibility-hidden so swiping the app away within 250 ms of "Save night" can
+no longer lose the entry; backup nudge starts at 3 nights (was 5); the iOS
+install banner now warns that Safari-logged nights do NOT carry into the
+home-screen app (separate storage container) and walks through
+backup-file → restore. Correctness: WASO is clipped to the [onset, wake]
+window so TST agrees with the chart; naps that cross noon warn instead of
+vanishing silently; saving a night with inconsistent times (the classic
+AM/PM slip) now asks for confirmation — one bad night drags every mean in
+the report. Consultant sync Phase 1 (docs/specs/consultant-sync.md) is in,
+behind an empty SYNC_ENDPOINT so production behavior is unchanged:
+#connect= invite → consent card → per-child outbox → idempotent pushes,
+delete tombstones, revocation, Stop sharing. Everything verified in the
+browser: unit checks by hand (WASO 45 where 30+15-clipped+0-outside, TST
+565 = 610−45), and the full sync lifecycle against a mocked backend —
+invite GET, consent, save → POST payload, delete → tombstone, stop →
+DELETE. CACHE_VERSION 2.2.1 → 2.3.0, demo/www rebuilt. Talking point: the
+scariest bug wasn't in the sleep math — it was the backup that quietly
+forgot the doctor's plan.
 
 
 ## Other tboughts

@@ -206,6 +206,9 @@ Still ahead:
   this repo (see [NATIVE.md](NATIVE.md)) — enables reliable daily reminder
   notifications.
 - **Clinic pilot** — QR handout, feedback from real families, then iterate.
+- **[Consultant sync & caseload dashboard](docs/specs/consultant-sync.md)** —
+  opt-in, invite-driven sharing with a sleep consultant's dashboard
+  (commercial track; the family app stays local-first and account-free).
 
 ## License / attribution
 

@@ -359,7 +359,7 @@ const KV = {
 
 /* ---------- state (v2: multiple children) ---------- */
 let state = null;
-function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{}, plan:null, planHistory:[], research:{ participantCode:"" } }; }
+function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{}, plan:null, planHistory:[], research:{ participantCode:"" }, sync:null }; }
 function blankState(){
   return { version:2, activeChild:"c1", children:{ c1: blankChild() },
            meta:{ lastBackupAt:null, reminder:{ enabled:false, time:"07:00" } },
@@ -380,6 +380,8 @@ function migrateState(s){
       if (c.plan === undefined) c.plan = null;
       if (!Array.isArray(c.planHistory)) c.planHistory = [];
       if (!c.research) c.research = { participantCode:"" };
+      if (c.sync === undefined) c.sync = null;
+      if (c.sync && !Array.isArray(c.sync.pending)) c.sync.pending = [];
     });
     return s;
   }
@@ -398,16 +400,38 @@ async function loadState(){
     try { parsed = JSON.parse(window.localStorage.getItem(STORE_KEY)); } catch(e){}
   }
   if (!parsed){
-    const raw = await KV.get(STORE_KEY);
-    if (raw){ try { parsed = JSON.parse(raw); } catch(e){} }
+    /* Read BOTH stores and keep the newer copy (by meta.savedAt): iOS can
+       evict one store but not the other, and an interrupted write can leave
+       IndexedDB one save behind localStorage. */
+    let idbRaw = null, lsRaw = null;
+    try { idbRaw = await idbGet(STORE_KEY); } catch(e){}
+    try { lsRaw = window.localStorage.getItem(STORE_KEY); } catch(e){}
+    const parse = r => { if (!r) return null; try { return JSON.parse(r); } catch(e){ return null; } };
+    const a = parse(idbRaw), b = parse(lsRaw);
+    const stamp = s => (s && s.meta && s.meta.savedAt) || "";
+    parsed = (a && b) ? (stamp(b) > stamp(a) ? b : a) : (a || b);
   }
   state = migrateState(parsed);
 }
 let saveTimer = null;
+function serializeState(){
+  if (state.meta) state.meta.savedAt = new Date().toISOString();
+  return JSON.stringify(state);
+}
 function saveState(){
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(()=>{ KV.set(STORE_KEY, JSON.stringify(state)); }, 250);
+  saveTimer = setTimeout(()=>{ saveTimer = null; KV.set(STORE_KEY, serializeState()); }, 250);
 }
+/* A save debounced 250 ms ago is lost if the parent swipes the app away
+   first — flush it the moment the page is hidden (localStorage write is
+   synchronous, so it lands even as the page dies). */
+function flushSave(){
+  if (!saveTimer) return;
+  clearTimeout(saveTimer); saveTimer = null;
+  KV.set(STORE_KEY, serializeState());
+}
+window.addEventListener("pagehide", flushSave);
+document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden") flushSave(); });
 function cur(){ return state.children[state.activeChild]; }
 
 /* ---------- NSF sleep duration recommendations ----------
@@ -499,7 +523,16 @@ function computeNight(e){
   if (on < lo) out.warnings.push("Sleep onset is before lights out.");
   if (wk <= on) out.warnings.push("Morning wake time is not after sleep onset.");
   if (ob < wk) out.warnings.push("Out of bed is before final wake time.");
-  const waso = (e.awakenings||[]).reduce((s,a)=> s + (Number(a.dur)||0), 0);
+  /* Clip each awakening to the sleep window [onset, wake] so TST agrees
+     with the chart and raster (an awakening logged outside the window —
+     usually a typo — no longer subtracts from sleep). Untimed awakenings
+     (old data) still count in full. */
+  const waso = (e.awakenings||[]).reduce((s,a)=>{
+    const d = Number(a.dur)||0;
+    if (!a.time) return s + d;
+    const t = mfn(a.time);
+    return s + Math.max(0, Math.min(t + d, wk) - Math.max(t, on));
+  }, 0);
   const nAw = (e.awakenings||[]).length;
   const nHelp = (e.awakenings||[]).filter(a=> a.help && a.help!=="none").length;
   const tib = ob - lo;
@@ -514,6 +547,7 @@ function computeNight(e){
     if (n.asleep && n.woke){
       const s = mfn(n.asleep), w = mfn(n.woke);
       if (w > s){ napSleep += (w - s); nNaps++; }
+      else out.warnings.push("A nap ends at or before it starts — a nap that crosses noon belongs to two diary days; split it at noon.");
     }
     if (n.inBed && n.out){
       const i = mfn(n.inBed), o = mfn(n.out);
@@ -786,6 +820,13 @@ function installBanner(){
   } else if (isiOS){
     b.append(el("div",{class:"hint",style:"margin-top:6px"},
       "Tap the Share button (the square with an arrow, at the bottom of Safari), scroll down, and choose “Add to Home Screen.”"));
+    /* iOS gives the installed app its own storage container — nights logged
+       in Safari do NOT appear in it. Backup file is the bridge. */
+    if (sortedEntries().length){
+      b.append(el("div",{class:"hint",style:"margin-top:6px"},
+        el("b",null,"Already logged nights here? "),
+        "Save a backup file first (Share tab) — the installed app starts empty on iPhone — then use “Restore from file” inside it."));
+    }
   } else {
     b.append(el("div",{class:"hint",style:"margin-top:6px"},
       "In your browser's menu, choose “Add to Home Screen” or “Install app.”"));
@@ -870,7 +911,7 @@ function missingNights(){
 }
 function backupDue(){
   const n = sortedEntries().length;
-  if (n < 5) return false;
+  if (n < 3) return false;
   const stamps = [state.meta.lastBackupAt, state.drive.lastBackupAt].filter(Boolean);
   if (!stamps.length) return true;
   const latest = stamps.sort().pop();
@@ -887,6 +928,9 @@ function renderDiary(){
 
   /* clinician plan arriving via link — the family decides */
   if (pendingPlan) v.append(planOfferCard());
+
+  /* consultant sharing invitation (#connect= link) — the family decides */
+  if (pendingConnect) v.append(connectOfferCard());
 
   /* install prompt (browser only; hidden once installed or dismissed) */
   const inst = installBanner();
@@ -1153,19 +1197,25 @@ function entryForm(existing, presetDate){
   const btns = el("div",{class:"btn-row"});
   btns.append(el("button",{class:"btn-secondary",onclick:()=>{ editing=null; renderDiary(); }},"Cancel"));
   if (existing) btns.append(el("button",{class:"btn-danger",onclick:()=>{
-      if (confirm("Delete this night?")){ delete cur().entries[existing.date]; saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub(); }
+      if (confirm("Delete this night?")){ delete cur().entries[existing.date]; syncMarkDirty(existing.date); saveState(); syncFlush(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub(); }
     }},"Delete"));
   btns.append(el("button",{class:"btn-primary",onclick:()=>{
     if (!e.date){ toast("Pick a date"); return; }
     if (!(e.lightsOut && e.onset && e.wake && e.outOfBed)){ toast("Fill in the four main times"); return; }
+    /* inconsistent times are usually an AM/PM slip — one bad night can
+       drag every average in the report, so make the parent look twice */
+    const chk = computeNight(e);
+    if (chk.valid && chk.warnings.length &&
+        !confirm("Check the times — "+chk.warnings.join(" ")+" Save anyway?")) return;
     /* guard against silently replacing an already-recorded night */
     const clobbers = cur().entries[e.date] && (!existing || existing.date !== e.date);
     if (clobbers && !confirm("The night of "+fmtDate(e.date)+" is already recorded. Replace it with this entry?")) return;
     e.awakenings = e.awakenings.filter(a=>a.time && a.dur!=="");
     e.naps = e.naps.filter(n=>n.asleep && n.woke);
-    if (existing && existing.date !== e.date) delete cur().entries[existing.date];
+    if (existing && existing.date !== e.date){ delete cur().entries[existing.date]; syncMarkDirty(existing.date); }
     cur().entries[e.date] = e;
-    saveState(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub();
+    syncMarkDirty(e.date);
+    saveState(); syncFlush(); editing=null; renderDiary(); $("#hdrSub").textContent=headerSub();
     toast("Night saved");
   }},"Save night"));
   card.append(btns);
@@ -1614,6 +1664,25 @@ function renderShare(){
   ));
   v.append(rcard);
 
+  /* ---- consultant sharing status (only when connected) ---- */
+  if (cur().sync){
+    const s = cur().sync;
+    const shc = el("div",{class:"card"});
+    shc.append(el("h2",null,"Sharing with your consultant",
+      el("span",{class:"big"}, s.consultant.name + (s.consultant.practice? " · "+s.consultant.practice : ""))));
+    const nPend = (s.pending||[]).length;
+    shc.append(el("div",{class:"hint",style:"margin:0"},
+      "Sharing since "+fmtDate(s.since)+". "+
+      (s.lastPushedAt? "Last sent "+new Date(s.lastPushedAt).toLocaleString()+". " : "Nothing sent yet. ")+
+      (nPend? nPend+" night"+(nPend>1?"s":"")+" waiting to send (sent automatically when online)." : "All caught up.")));
+    shc.append(el("button",{class:"btn-danger",style:"margin-top:8px;padding-left:0",onclick:async ()=>{
+      if (!confirm("Stop sharing with "+s.consultant.name+"? Your diary stays on this phone; they are asked to delete what was sent.")) return;
+      try{ await fetch(SYNC_ENDPOINT+"/connection/"+encodeURIComponent(s.code), {method:"DELETE"}); }catch(err){}
+      cur().sync = null; saveState(); renderShare(); toast("Sharing stopped");
+    }},"Stop sharing…"));
+    v.append(shc);
+  }
+
   /* ---- backup card ---- */
   const bk = el("div",{class:"card"});
   bk.append(el("h2",null,"Back up your diary"));
@@ -1685,7 +1754,10 @@ function renderShare(){
   danger.append(el("button",{class:"btn-danger",onclick:()=>{
     const who = cur().settings.initials || "this child";
     if (confirm("Erase all recorded nights for "+who+" from this device? This cannot be undone.")){
-      cur().entries = {}; saveState(); render(); toast("Diary erased");
+      const gone = Object.keys(cur().entries);
+      cur().entries = {};
+      gone.forEach(syncMarkDirty);   /* propagate deletions if sharing */
+      saveState(); syncFlush(); render(); toast("Diary erased");
     }
   }},"Erase this child's diary data"));
   v.append(danger);
@@ -1737,7 +1809,16 @@ function applyBackup(obj){
         if (src.settings.ageBand && !state.children[id].settings.ageBand)
           state.children[id].settings.ageBand = src.settings.ageBand;
       }
-      mergeEntries(state.children[id], src.entries);
+      /* the clinician plan and study code travel with the backup too —
+         a new phone should not silently lose them. Never restore `sync`:
+         sharing consent belongs to the device where it was given. */
+      const dst = state.children[id];
+      if (src.plan && !dst.plan) dst.plan = src.plan;
+      if (Array.isArray(src.planHistory) && src.planHistory.length && !(dst.planHistory||[]).length)
+        dst.planHistory = src.planHistory;
+      if (src.research && src.research.participantCode && !(dst.research && dst.research.participantCode))
+        dst.research = { participantCode: src.research.participantCode };
+      mergeEntries(dst, src.entries);
     });
   } else if (typeof obj.entries==="object"){
     /* v1 backup: merge into the active child */
@@ -1826,6 +1907,91 @@ async function driveRestore(){
   return applyBackup(await r.json());
 }
 
+/* ============================================================
+   Consultant sync — Phase 1 skeleton (docs/specs/consultant-sync.md)
+   ============================================================
+   Entirely inert until SYNC_ENDPOINT is set (same pattern as
+   GOOGLE_CLIENT_ID). A consultant's invite arrives as #connect=<code>;
+   the family consents on the Diary tab; after that, saves queue the
+   night's date in child.sync.pending and syncFlush() pushes idempotent
+   upserts keyed on (code, date). Pseudonymous by design: the payload
+   carries sleep times, adherence, and notes — never a name. */
+const SYNC_ENDPOINT = "";   // e.g. "https://sync.example.com/v1" — empty = feature off
+let pendingConnect = null;  // {code, consultant:{name, practice?}} awaiting consent
+
+async function fetchInvite(code){
+  try{
+    const r = await fetch(SYNC_ENDPOINT+"/invite/"+encodeURIComponent(code));
+    if (!r.ok) throw new Error();
+    const inv = await r.json();
+    if (!(inv && inv.consultant && inv.consultant.name)) throw new Error();
+    pendingConnect = { code, consultant: inv.consultant };
+    if (!editing) render();
+  }catch(err){
+    toast("That sharing link could not be read — ask your consultant for a new one.");
+  }
+}
+function syncMarkDirty(date){
+  const s = cur().sync;
+  if (!s) return;
+  if (!Array.isArray(s.pending)) s.pending = [];
+  if (!s.pending.includes(date)) s.pending.push(date);
+}
+let syncInFlight = false;
+async function syncFlush(){
+  if (!SYNC_ENDPOINT || syncInFlight || navigator.onLine === false) return;
+  const jobs = Object.values(state.children).filter(c=> c.sync && (c.sync.pending||[]).length);
+  if (!jobs.length) return;
+  syncInFlight = true;
+  try{
+    for (const c of jobs){
+      const dates = c.sync.pending.slice();
+      /* a queued date with no entry means the night was deleted here */
+      const entries = dates.map(d=> c.entries[d] || { date:d, deleted:true });
+      let r;
+      try{
+        r = await fetch(SYNC_ENDPOINT+"/sync", { method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ v:1, code:c.sync.code, entries }) });
+      }catch(err){ continue; }             /* offline/unreachable — retry later */
+      if (r.status === 403 || r.status === 410){
+        c.sync = null; saveState();        /* consultant revoked the code */
+        toast("Sharing was ended by your consultant.");
+        continue;
+      }
+      if (!r.ok) continue;                 /* server hiccup — keep queued */
+      c.sync.pending = c.sync.pending.filter(d=> !dates.includes(d));
+      c.sync.lastPushedAt = new Date().toISOString();
+      saveState();
+    }
+  } finally { syncInFlight = false; }
+}
+window.addEventListener("online", ()=>{ syncFlush(); });
+
+function connectOfferCard(){
+  const p = pendingConnect;
+  const c = el("div",{class:"card tint"});
+  c.append(el("h2",null,"Sharing invitation", el("span",{class:"big"},
+    p.consultant.name + (p.consultant.practice? " · "+p.consultant.practice : ""))));
+  const who = cur().settings.initials;
+  c.append(el("div",null,
+    "Share "+(who? who+"'s" : "this")+" diary with your sleep consultant? "+
+    "They will see sleep times, checklist adherence, and your notes as you log them — no name is ever sent."));
+  c.append(el("div",{class:"hint"},
+    "Avoid identifying details in notes. You can stop sharing anytime in the Share tab; your diary always stays on this phone either way."));
+  c.append(el("div",{class:"btn-row"},
+    el("button",{class:"btn-secondary",onclick:()=>{ pendingConnect=null; renderDiary(); }},"Not now"),
+    el("button",{class:"btn-primary",onclick:()=>{
+      cur().sync = { code:p.code, consultant:p.consultant, since:isoToday(),
+                     pending:Object.keys(cur().entries), lastPushedAt:null };
+      pendingConnect = null;
+      saveState(); syncFlush(); renderDiary();
+      toast("Sharing with "+p.consultant.name);
+    }},"Share this diary")
+  ));
+  return c;
+}
+
 /* ---------- init ---------- */
 (async function(){
   /* Ask the browser to keep our storage through cleanup passes. */
@@ -1857,9 +2023,18 @@ async function driveRestore(){
     try{ history.replaceState(null, "", location.pathname + location.search); }catch(err){}
     if (!pendingPlan) toast("That plan link could not be read — ask for a new one.");
   }
+  /* A consultant invite (#connect=…) — scrub the fragment, then fetch the
+     invite preview so the family sees WHO is asking before consenting. */
+  const connMatch = location.hash.match(/[#&]connect=([A-Za-z0-9\-_]+)/);
+  if (connMatch){
+    try{ history.replaceState(null, "", location.pathname + location.search); }catch(err){}
+    if (SYNC_ENDPOINT) fetchInvite(connMatch[1]);
+    else toast("Sharing with a consultant isn't enabled in this copy of the app.");
+  }
   /* Re-assert the daily reminder in the native shell (survives OS cleanups). */
   if (IS_NATIVE && state.meta.reminder.enabled) applyReminder().catch(()=>{});
   render();
+  syncFlush();   /* retry any queued consultant pushes from a previous session */
   /* ?print — pre-build the physician report so the browser's own
      Print / Save-as-PDF captures it (also used to generate the repo's
      sample-report.pdf). */
