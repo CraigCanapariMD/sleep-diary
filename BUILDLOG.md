@@ -266,3 +266,12 @@ download blob, checked every computed metric by hand (SOL 20 min, SE 94.1%
 "suitable for REDCap import" (a README aspiration) to a working research
 instrument in one commit, because the CSV schema was designed for it from
 day one.
+
+
+
+## Other tboughts
+
+Two compelling articles in NYT on 7/12/26
+Helen Ouyang-- on risks of AI scribes
+Cunff- on risk of AI search
+specifically the fact that when you're searching in AI, you don't always know what the right question is, but you're going to get the right answer to the question you asked. Clicking through links on the Internet reminds me of when I used to go to the library for my English degree, and the book I was looking for was not the right one. It was the one on the shelf next to it. And that curiosity drives learning and also serendipity.
