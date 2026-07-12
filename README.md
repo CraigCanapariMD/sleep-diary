@@ -167,28 +167,30 @@ Styled with the shared Canapari "Fossil" brand system — see
 
 ## Roadmap
 
-Three directions now have full written specs in [`docs/specs/`](docs/specs/):
+**Shipped from the roadmap** (specs kept in [`docs/specs/`](docs/specs/) as
+design history):
 
-- **[Clinician-pushed sleep plans](docs/specs/clinician-plan-push.md)** — a
-  physician/psychologist/sleep coach builds a plan (targets, bedtime-fading
-  schedule, nightly checklist) on a static `plan.html` page and hands it to
-  the family as a QR code / link; the diary then shows tonight's targets
-  while logging, overlays them on the chart, and reports adherence back on
-  the PDF. No server — the plan travels in the URL fragment. Extended by
-  **[protocol templates & education packs](docs/specs/protocol-templates.md)**:
-  prefilled sleep-training methods (bedtime fading, graduated extinction,
-  camping out) and delayed-sleep-phase protocols (phase advance,
-  chronotherapy) with night-keyed "what to expect" content for families.
+- ✅ **Clinician sleep plans** ([spec](docs/specs/clinician-plan-push.md)) —
+  the `plan.html` builder with protocol prefills, QR/link plan capsules, the
+  in-diary accept flow, nightly targets, chart overlays, and adherence
+  reporting. See "What the app does" above.
+- ✅ **REDCap Phase A** ([spec](docs/specs/redcap-research-backend.md)) — the
+  [`redcap/`](redcap/) data dictionary + coordinator guide and the Share
+  tab's research export.
+
+Still ahead:
+
 - **[Teen screen-time tracking](docs/specs/teen-screen-time.md)** — part of
   the teen version below: last-screen-off time and screens-in-bed captured in
   ≤3 taps, rendered on the sleep chart next to sleep onset, with
   screen-to-sleep buffer and school/weekend stats in the summary.
-- **[REDCap research backend](docs/specs/redcap-research-backend.md)** —
-  Phase A ships a REDCap data dictionary + "Export for research" CSV (no
-  infrastructure); Phase B adds opt-in enrollment via QR and one-tap "Send to
-  study" through a tiny stateless relay that keeps the API token off the
-  client.
-
+- **[Education packs](docs/specs/protocol-templates.md)** — night-keyed
+  "what to expect" content paired with plan protocols (the capsule format
+  already carries the protocol id), plus the chronotherapy "marching sleep
+  window" chart visual.
+- **[REDCap Phase B](docs/specs/redcap-research-backend.md)** — opt-in
+  enrollment via QR and one-tap "Send to study" through a tiny stateless
+  relay that keeps the API token off the client. Waits for a real protocol.
 - **Teen self-report version** — a variant written *for adolescents, not
   parents*: first-person language, self-entry each morning, and fields that
   matter clinically for teens — evening device/screen use (what, until when,
@@ -196,7 +198,7 @@ Three directions now have full written specs in [`docs/specs/`](docs/specs/):
   metrics (midsleep, SRI, weekday/weekend drift) are especially relevant to
   adolescent delayed sleep phase. Planned as a collaboration with two teenage
   co-developers (the author's sons), who will contribute as named,
-  credited contributors on this public repo — real shipped open-source work.
+  credited contributors on this public repo — real, shipped, public work.
   Open question: teen *mode* inside this app (shared codebase, shared fixes)
   vs. a separate teen-owned fork; leaning mode-plus-credit, decide when work
   starts.
