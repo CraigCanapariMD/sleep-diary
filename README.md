@@ -30,6 +30,9 @@ backup). Works fully offline once opened; supports multiple children per device.
 - `demo.html` — identical app, but pre-loads 7 nights of sample data on first
   open (for demonstrating to colleagues). Regenerate it after editing
   `index.html` (it is `index.html` plus one seed `<script>` block). Safe to delete.
+- `plan.html` — the **clinician-side plan builder** (see below) and
+  `qrcodegen.js` (its QR library — Nayuki, MIT). Safe to delete if you don't
+  use plans.
 
 ## How families use it (no accounts, nothing to install from a store)
 
@@ -89,6 +92,14 @@ Generate the QR code from your Pages URL with any QR generator.
   the chart, CSV export, JSON backup file, optional Google Drive backup.
 - **Multiple children** per device, each with their own diary, initials, and
   age group.
+- **Clinician sleep plans**: a clinician builds a plan at `plan.html`
+  (targets, an optional stepped bedtime schedule, a nightly checklist, a
+  note) and hands the family a QR code or link. The plan travels entirely
+  inside the link's `#` fragment — no server involved. The family taps
+  "Add this plan"; the diary then shows each night's computed target while
+  they log, draws dashed target lines on the chart, and adds a plan-adherence
+  table to the summary, text export, and PDF report. Families can remove a
+  plan at any time; plans never modify entries.
 
 ## Privacy / compliance posture
 

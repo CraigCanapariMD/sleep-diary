@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sleep Plan Builder — Pediatric Sleep Diary</title>
+<meta name="robots" content="noindex">
+<style>
+/* ---- Fossil brand tokens (aligned with the shared brand.css) ---- */
+:root{
+  --brand-bg:#F5F2EE; --brand-surface:#EDE9E4; --brand-ink:#050911;
+  --brand-muted:#6B655C; --brand-accent:#2A7D6B; --brand-accent-text:#1F6A59;
+  --brand-accent-hover:#1A5546; --brand-on-accent:#FFFFFF;
+  --brand-accent-tint:#E7F0ED; --brand-accent-border:#C9E0D8;
+  --brand-warning:#B4472F; --brand-warning-tint:#FBF1ED; --brand-warning-border:#EFD8D0;
+  --brand-border:#DED8CF;
+  --brand-font-heading:'Plus Jakarta Sans',system-ui,-apple-system,"Segoe UI",sans-serif;
+  --brand-font-body:'Charter','Bitstream Charter','Sitka Text',Cambria,Georgia,serif;
+  --brand-radius:8px; --brand-radius-lg:12px;
+  --brand-shadow:0 4px 20px rgba(5,9,17,.08);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --brand-bg:#1A1A1B; --brand-surface:#141413; --brand-ink:#F5F2EE;
+    --brand-muted:#B5AFA6; --brand-accent:#4FB89F; --brand-accent-text:#4FB89F;
+    --brand-accent-hover:#69C9B1; --brand-on-accent:#10231F;
+    --brand-accent-tint:#17302A; --brand-accent-border:#24463D;
+    --brand-warning:#E08769; --brand-warning-tint:#2A1A14; --brand-warning-border:#4A2A1E;
+    --brand-border:#2E2D2A; --brand-shadow:0 4px 20px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--brand-bg);color:var(--brand-ink);
+  font:18px/1.7 var(--brand-font-body);}
+h1,h2,h3{font-family:var(--brand-font-heading);line-height:1.2;letter-spacing:-0.02em;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 80px}
+
+.audience{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);
+  color:var(--brand-accent-text);border-radius:var(--brand-radius);padding:8px 14px;
+  font:600 .78em var(--brand-font-heading);display:inline-block;margin-bottom:18px}
+
+header.page h1{font-size:1.7em}
+header.page p{color:var(--brand-muted);margin:.4em 0 0;max-width:46em}
+
+.cols{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:26px;margin-top:26px}
+@media (max-width:900px){.cols{grid-template-columns:1fr}}
+
+.card{background:var(--brand-surface);border:1px solid var(--brand-border);
+  border-radius:var(--brand-radius-lg);padding:20px 22px;margin-bottom:18px}
+.card h2{font-size:1.02em;margin-bottom:2px}
+.card .hint{color:var(--brand-muted);font-size:.82em;margin:.2em 0 14px}
+
+label{display:block;font:600 .78em var(--brand-font-heading);margin:12px 0 4px}
+input[type=text],input[type=time],input[type=date],select,textarea{
+  width:100%;padding:9px 11px;font:1em var(--brand-font-body);color:var(--brand-ink);
+  background:var(--brand-bg);border:1px solid var(--brand-border);border-radius:var(--brand-radius)}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--brand-accent);outline-offset:1px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
+
+.switchrow{display:flex;align-items:center;gap:10px;margin-top:14px}
+.switchrow input{width:auto;accent-color:var(--brand-accent)}
+.switchrow span{font:600 .82em var(--brand-font-heading)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+button.chip{font:600 .78em var(--brand-font-heading);padding:7px 12px;cursor:pointer;
+  background:var(--brand-bg);color:var(--brand-accent-text);
+  border:1px solid var(--brand-accent-border);border-radius:999px}
+button.chip:hover{background:var(--brand-accent-tint)}
+button.chip[disabled]{opacity:.35;cursor:default}
+
+ul.picked{list-style:none;margin:12px 0 0;padding:0}
+ul.picked li{display:flex;align-items:center;gap:10px;padding:8px 12px;margin-top:6px;
+  background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);
+  border-radius:var(--brand-radius);font-size:.9em}
+ul.picked li .x{margin-left:auto;cursor:pointer;border:0;background:none;
+  color:var(--brand-muted);font-size:1.1em;line-height:1;padding:2px 6px}
+.addrow{display:flex;gap:8px;margin-top:12px}
+.addrow input{flex:1}
+
+button.primary,button.ghost{font:600 .85em var(--brand-font-heading);cursor:pointer;
+  border-radius:var(--brand-radius);padding:11px 18px}
+button.primary{background:var(--brand-accent);color:var(--brand-on-accent);border:0}
+button.primary:hover{background:var(--brand-accent-hover)}
+button.ghost{background:none;color:var(--brand-accent-text);border:1px solid var(--brand-accent-border)}
+button.ghost:hover{background:var(--brand-accent-tint)}
+
+.fadeSummary{margin-top:14px;padding:12px 14px;border-radius:var(--brand-radius);
+  background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);font-size:.88em}
+.fadeSummary b{font-family:var(--brand-font-heading)}
+.supervise{margin-top:12px;padding:10px 12px;border-radius:var(--brand-radius);
+  background:var(--brand-warning-tint);border:1px solid var(--brand-warning-border);
+  color:var(--brand-warning);font:600 .8em var(--brand-font-heading)}
+
+/* ---- right column ---- */
+.sticky{position:sticky;top:16px}
+.phone{background:var(--brand-bg);border:1px solid var(--brand-border);
+  border-radius:22px;box-shadow:var(--brand-shadow);padding:16px 14px;max-width:340px;margin:8px auto 0}
+.phone .appbar{font:700 .72em var(--brand-font-heading);color:var(--brand-muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px;text-align:center}
+.planstrip{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);
+  border-radius:var(--brand-radius);padding:12px 14px}
+.planstrip .from{font:700 .74em var(--brand-font-heading);color:var(--brand-accent-text)}
+.planstrip .tonight{font-size:.95em;margin-top:4px}
+.planstrip .tonight b{font-family:var(--brand-font-heading)}
+.planstrip .cl{list-style:none;margin:10px 0 0;padding:0}
+.planstrip .cl li{display:flex;gap:8px;align-items:flex-start;font-size:.82em;margin-top:6px}
+.planstrip .cl li .box{width:16px;height:16px;flex:none;margin-top:3px;border-radius:4px;
+  border:1.5px solid var(--brand-accent);background:var(--brand-bg)}
+.planstrip .note{font-size:.8em;color:var(--brand-muted);margin-top:10px;font-style:italic}
+.stairs{margin-top:12px}
+.stairs svg{display:block;width:100%}
+
+.qrcard .qrbox{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+canvas#qr{width:150px;height:150px;image-rendering:pixelated;border:1px solid var(--brand-border);
+  border-radius:6px;background:#fff}
+.linkline{font:.72em ui-monospace,Menlo,monospace;word-break:break-all;color:var(--brand-muted);
+  background:var(--brand-bg);border:1px solid var(--brand-border);border-radius:var(--brand-radius);
+  padding:8px 10px;margin-top:12px;max-height:74px;overflow:hidden}
+.meta{font-size:.78em;color:var(--brand-muted);margin-top:8px}
+.btnrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
+footer{margin-top:30px;color:var(--brand-muted);font-size:.8em;max-width:52em}
+a{color:var(--brand-accent-text)}
+
+/* ---- printable family handout ---- */
+#handout{display:none}
+@media print{
+  .wrap{display:none}
+  #handout{display:block;font:12.5pt/1.55 var(--brand-font-body);color:#000;padding:0 .25in}
+  #handout h1{font-size:1.5em;margin-bottom:2px}
+  #handout h2{font-size:.95em;margin:14px 0 4px;text-transform:uppercase;letter-spacing:.04em}
+  #handout .h-from{color:#444;font-size:.9em}
+  #handout ul,#handout ol{margin:4px 0;padding-left:1.3em}
+  #handout blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid #999;font-style:italic}
+  #handout .h-qr{display:flex;gap:18px;align-items:center;margin-top:8px}
+  #handout .h-qr img{width:1.7in;height:1.7in}
+  #handout .h-link{font:8.5pt ui-monospace,Menlo,monospace;word-break:break-all;color:#444;max-width:4.5in}
+  #handout .h-foot{margin-top:14px;font-size:.8em;color:#555;border-top:1px solid #ccc;padding-top:6px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="audience">FOR CLINICIANS &amp; SLEEP PROFESSIONALS — families just scan the code you print</div>
+
+  <header class="page">
+    <h1>Sleep Plan Builder</h1>
+    <p>Build a nightly sleep plan, then hand the family a QR code or link — it loads straight
+       into their Pediatric Sleep Diary, shows tonight's targets while they log each morning,
+       and reports adherence back on the diary's PDF. Nothing is sent to any server: the whole
+       plan travels inside the link itself, and this page works offline once loaded.</p>
+  </header>
+
+  <div class="cols">
+    <!-- ================= LEFT: the form ================= -->
+    <div>
+      <div class="card">
+        <h2>0 · Start from a protocol <span style="font-weight:400;color:var(--brand-muted)">(optional)</span></h2>
+        <p class="hint">Prefills everything below — then edit freely. The template is a
+          starting point; the plan is yours.</p>
+        <select id="protocol" aria-label="Protocol template">
+          <option value="custom">Custom plan (blank)</option>
+          <optgroup label="Young children — sleep training">
+            <option value="fading">Bedtime fading + positive routine</option>
+            <option value="gradext">Graduated extinction (timed check-ins)</option>
+            <option value="campout">Camping out (parental presence fading)</option>
+          </optgroup>
+          <optgroup label="Teens — delayed sleep phase">
+            <option value="advance">Phase advance (step earlier, light + anchor)</option>
+            <option value="chrono">Chronotherapy (progressive delay — supervised)</option>
+          </optgroup>
+        </select>
+        <div class="supervise" id="superviseFlag" style="display:none">
+          ⚠ Chronotherapy is a supervised, ~1-week commitment: sleep moves around the clock,
+          school/work need coordination, and relapse is likely without a strict maintenance
+          plan (issue it as a follow-up plan at the review visit).
+          <span id="chronoReview"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>1 · About this plan</h2>
+        <p class="hint">Shown to the family so they know who the plan is from.</p>
+        <div class="grid2">
+          <div><label for="cname">Your name</label>
+            <input type="text" id="cname" placeholder="Dr. …"></div>
+          <div><label for="crole">Role</label>
+            <select id="crole">
+              <option>Sleep physician</option><option>Psychologist</option>
+              <option>Pediatrician</option><option>Nurse practitioner / PA</option>
+              <option>Sleep coach</option>
+            </select></div>
+        </div>
+        <div class="grid2">
+          <div><label for="dstart">Plan starts</label>
+            <input type="date" id="dstart"></div>
+          <div><label for="dreview">Review at next visit</label>
+            <input type="date" id="dreview"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>2 · Sleep targets</h2>
+        <p class="hint">Drawn as dashed target lines on the family's sleep chart.</p>
+        <div class="grid2">
+          <div><label for="tbed">Target bedtime</label>
+            <input type="time" id="tbed" value="21:00"></div>
+          <div><label for="twake">Target wake time</label>
+            <input type="time" id="twake" value="07:00"></div>
+        </div>
+        <div class="switchrow">
+          <input type="checkbox" id="wkend"><span>Different weekend times (teens)</span>
+        </div>
+        <div class="grid2" id="wkendRow" style="display:none">
+          <div><label for="tbedW">Weekend bedtime</label><input type="time" id="tbedW" value="22:00"></div>
+          <div><label for="twakeW">Weekend wake</label><input type="time" id="twakeW" value="08:00"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>3 · Get there gradually <span style="font-weight:400;color:var(--brand-muted)">(optional)</span></h2>
+        <p class="hint">Bedtime fading / phase shift. The family's diary computes <em>tonight's</em>
+          bedtime automatically every night — no date math on paper.</p>
+        <div class="switchrow">
+          <input type="checkbox" id="useFade"><span>Step the bedtime gradually</span>
+        </div>
+        <div id="fadeRow" style="display:none">
+          <div class="grid3">
+            <div><label for="ffrom">Starting bedtime</label>
+              <input type="time" id="ffrom" value="21:45"></div>
+            <div><label for="fstep">Shift by (min)</label>
+              <select id="fstep"><option>10</option><option selected>15</option><option>20</option><option>30</option><option>60</option><option>120</option><option>180</option></select></div>
+            <div><label for="fevery">Every (nights)</label>
+              <select id="fevery"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>7</option></select></div>
+          </div>
+          <div class="fadeSummary" id="fadeSummary"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>4 · Nightly checklist</h2>
+        <p class="hint">Tap to add. The family checks these off each morning; you get an
+          adherence table in their report.</p>
+        <div class="chips" id="tplChips"></div>
+        <ul class="picked" id="picked"></ul>
+        <div class="addrow">
+          <input type="text" id="customItem" placeholder="Add your own item…" maxlength="120">
+          <button class="ghost" id="addCustom">Add</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>5 · Note to the family</h2>
+        <p class="hint">Short and encouraging — appears under the plan in their app.</p>
+        <textarea id="note" rows="3" maxlength="240"></textarea>
+        <div class="meta"><span id="noteCount">0</span>/240</div>
+      </div>
+    </div>
+
+    <!-- ================= RIGHT: live preview ================= -->
+    <div>
+      <div class="sticky">
+        <div class="card">
+          <h2>What the family sees</h2>
+          <p class="hint">Live preview of the plan strip in their diary's morning entry.</p>
+          <div class="phone">
+            <div class="appbar">Sleep Diary · Add last night</div>
+            <div class="planstrip">
+              <div class="from" id="pvFrom"></div>
+              <div class="tonight" id="pvTonight"></div>
+              <ul class="cl" id="pvChecklist"></ul>
+              <div class="note" id="pvNote"></div>
+            </div>
+            <div class="stairs" id="pvStairs"></div>
+          </div>
+        </div>
+
+        <div class="card qrcard">
+          <h2>Hand it to the family</h2>
+          <p class="hint">Print the handout (includes the code and instructions), scan in
+            clinic, or paste the link into a MyChart message.</p>
+          <div class="qrbox">
+            <canvas id="qr" width="150" height="150" aria-label="QR code for this plan"></canvas>
+            <div style="flex:1;min-width:150px">
+              <div class="meta" id="bytes"></div>
+              <div class="btnrow">
+                <button class="primary" id="copyLink">Copy link</button>
+                <button class="ghost" id="printBtn">Print handout</button>
+              </div>
+            </div>
+          </div>
+          <div class="linkline" id="linkline"></div>
+          <div class="meta">The plan is encoded in the link after “#” — it never reaches a
+            server. Anyone with the link can read it, so it contains no patient name.
+            The family taps “Add this plan” before anything is saved.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    This tool creates a plan for <em>display</em> inside the
+    <a href="./">Pediatric Sleep Diary</a>. It gives no diagnosis or treatment advice and is
+    not a medical device; the plan's content is entirely the clinician's. Part of the
+    source-available <a href="https://github.com/CraigCanapariMD/sleep-diary">sleep-diary</a>
+    project — free for noncommercial, research, and small-practice clinical use (see the
+    LICENSE for commercial terms). QR code generation by the
+    <a href="https://www.nayuki.io/page/qr-code-generator-library">Nayuki QR Code generator
+    library</a> (MIT).
+  </footer>
+</div>
+
+<!-- printable family handout (populated live; shown only when printing) -->
+<div id="handout" aria-hidden="true">
+  <h1>Your child's sleep plan</h1>
+  <div class="h-from" id="hFrom"></div>
+  <h2>Targets</h2>
+  <div id="hTargets"></div>
+  <h2>Every night</h2>
+  <ul id="hChecklist"></ul>
+  <blockquote id="hNote"></blockquote>
+  <h2>Add this plan to the Sleep Diary app</h2>
+  <ol>
+    <li>Open your phone's <b>camera</b> and point it at the code below, then tap the link.</li>
+    <li>The Sleep Diary opens and shows this plan — tap <b>“Add this plan.”</b></li>
+    <li>New to the diary? The same link sets it up: after adding the plan, use
+        <b>“Add to Home Screen”</b> so it works like an app.</li>
+  </ol>
+  <div class="h-qr">
+    <img id="hQr" alt="QR code for this plan">
+    <div class="h-link" id="hLink"></div>
+  </div>
+  <div class="h-foot">This plan was written by your clinician; the Sleep Diary only displays
+    it. The diary keeps all data on your phone. Questions about the plan? Contact the
+    clinician above — not a medical device, no diagnosis or treatment advice.</div>
+</div>
+
+<script src="qrcodegen.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+
+/* ---------- checklist template library ---------- */
+const TEMPLATES = [
+  {id:"screens60", label:"Screens off 60 min before bed"},
+  {id:"oob20",     label:"Out of bed if awake > 20 min"},
+  {id:"nocaf",     label:"No caffeine after 2 PM"},
+  {id:"anchor",    label:"Same wake time all 7 days"},
+  {id:"darkcool",  label:"Bedroom dark, cool, and quiet"},
+  {id:"checks",    label:"Brief check-ins at set intervals"},
+];
+const T = Object.fromEntries(TEMPLATES.map(t=>[t.id,t]));
+let picked = [];
+let customN = 0;
+
+/* ---------- protocol templates: prefill the form ----------
+   (see docs/specs/protocol-templates.md; night-keyed education packs are a
+   planned follow-on — the capsule carries the protocol id for forward compat) */
+const PROTOCOLS = {
+  fading: { mode:"advance",
+    targets:{bed:"20:00",wake:"06:30"}, fade:{on:true,from:"21:00",step:"15",every:"3"},
+    checklist:[T.screens60,T.darkcool,T.anchor,
+      {id:"routine",label:"Same calm 3-step routine every night (bath → books → bed)"}],
+    note:"Starting later on purpose — quick sleep at a late bedtime beats battles at an early one. We'll walk it earlier together." },
+  gradext: { mode:"advance",
+    targets:{bed:"20:00",wake:"06:30"}, fade:{on:false},
+    checklist:[T.checks,T.anchor,T.darkcool,
+      {id:"gradext1",label:"Check-ins tonight: 3 → 5 → 10 min; brief and boring (under 1 min, low voice, no pickup)"}],
+    note:"Nights 2–4 are often the loudest. That's the extinction burst — it means the plan is working. Hold steady." },
+  campout: { mode:"advance",
+    targets:{bed:"20:00",wake:"06:30"}, fade:{on:false},
+    checklist:[T.anchor,T.darkcool,
+      {id:"camp1",label:"Tonight's spot: chair beside the bed — calm presence, minimal talk"},
+      {id:"camp2",label:"Move the chair farther every 3 nights (middle of room → doorway → out)"}],
+    note:"You're not leaving — you're slowly becoming less of the show. Boring is the goal." },
+  advance: { mode:"advance",
+    targets:{bed:"21:30",wake:"07:00"}, fade:{on:true,from:"23:30",step:"15",every:"3"},
+    checklist:[T.anchor,T.screens60,T.nocaf,
+      {id:"light",label:"Bright light within 30 min of waking (outside, or a light box, 10–20 min)"},
+      {id:"mel",label:"Melatonin as prescribed — at the exact time on your prescription"}],
+    note:"The morning anchor does the heavy lifting: same wake time all 7 days, light right away. Bedtime follows." },
+  chrono: { mode:"delay",
+    targets:{bed:"21:30",wake:"07:00"}, fade:{on:true,from:"03:00",step:"180",every:"1"},
+    checklist:[T.anchor,T.darkcool,
+      {id:"chr1",label:"Sleep ONLY in the scheduled window — no naps, no dozing outside it"},
+      {id:"chr2",label:"Keep the schedule all 7 days during the shift — no exceptions"}],
+    note:"For about a week your sleep moves later around the clock until it lands at the target — then we hold it there, hard." },
+};
+function applyProtocol(id){
+  const p = PROTOCOLS[id]; if(!p) return;
+  $("#tbed").value = p.targets.bed; $("#twake").value = p.targets.wake;
+  $("#useFade").checked = p.fade.on;
+  if(p.fade.on){ $("#ffrom").value=p.fade.from; $("#fstep").value=p.fade.step; $("#fevery").value=p.fade.every; }
+  picked = p.checklist.slice();
+  $("#note").value = p.note;
+}
+
+/* ---------- time helpers ---------- */
+const hm = t => { const [h,m]=t.split(":").map(Number); return h*60+m; };
+const clock = m => { m=((m%1440)+1440)%1440; let h=Math.floor(m/60), mm=m%60,
+  ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(mm).padStart(2,"0")+" "+ap; };
+const fmtD = iso => { const [y,mo,d]=iso.split("-").map(Number);
+  return new Date(y,mo-1,d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}); };
+const addDays = (iso,k) => { const [y,mo,d]=iso.split("-").map(Number);
+  const dt=new Date(y,mo-1,d+k);
+  return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); };
+const isoToday = () => { const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+
+/* ---------- fade math: "advance" clamps at the target; "delay"
+   (chronotherapy) moves LATER around the clock with modular time.
+   Mirrors planTargets() in the diary app — keep the two in sync. ---------- */
+function fadeInfo(){
+  if(!$("#useFade").checked) return null;
+  const proto = PROTOCOLS[$("#protocol").value];
+  const mode = proto ? proto.mode : "advance";
+  const from=hm($("#ffrom").value), target=hm($("#tbed").value);
+  const step=+$("#fstep").value, every=+$("#fevery").value;
+  if(mode==="delay"){
+    const delta=(((target-from)%1440)+1440)%1440||1440;
+    const steps=Math.ceil(delta/step);
+    return { mode, from, target, step, every, steps, delta,
+      reachNight: steps*every+1,
+      atU(n){ return this.from+Math.min(this.delta, Math.floor((n-1)/this.every)*this.step); },
+      at(n){ return this.atU(n)%1440; } };
+  }
+  const dir = target<from ? -1 : 1;
+  const steps = Math.ceil(Math.abs(target-from)/step);
+  return { mode, from, target, step, every, dir, steps,
+    reachNight: steps*every+1,
+    at(n){ const shift=Math.floor((n-1)/every)*step*this.dir;
+      return this.dir<0 ? Math.max(this.target, this.from+shift)
+                        : Math.min(this.target, this.from+shift); },
+    atU(n){ return this.at(n); } };
+}
+
+/* ---------- plan capsule ---------- */
+function payload(){
+  const p = { v:1,
+    from:{ name:$("#cname").value.trim(), role:$("#crole").value },
+    start:$("#dstart").value, review:$("#dreview").value,
+    targets:{ bedtime:$("#tbed").value, wake:$("#twake").value } };
+  if($("#wkend").checked){ p.targets.weekendBedtime=$("#tbedW").value;
+                           p.targets.weekendWake=$("#twakeW").value; }
+  if($("#useFade").checked){
+    const proto = PROTOCOLS[$("#protocol").value];
+    p.fade={ from:$("#ffrom").value, stepMin:+$("#fstep").value,
+      everyNights:+$("#fevery").value, mode: proto ? proto.mode : "advance" };
+  }
+  const protoId=$("#protocol").value;
+  if(protoId!=="custom" && PROTOCOLS[protoId]) p.protocol={id:protoId};
+  p.checklist = picked.map(c=>({id:c.id,label:c.label}));
+  p.note = $("#note").value.trim();
+  return p;
+}
+const b64url = s => btoa(unescape(encodeURIComponent(s)))
+  .replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+/* The app link: plan.html sits beside index.html, so the app is this page's
+   own directory — works unchanged on any rehosted copy. */
+const APP_URL = new URL(".", location.href).href;
+
+/* ---------- QR (Nayuki qrcodegen, MIT — vendored in qrcodegen.js) ---------- */
+function drawQR(canvas, text){
+  if (typeof qrcodegen === "undefined") return false;
+  const qr = qrcodegen.QrCode.encodeText(text, qrcodegen.QrCode.Ecc.MEDIUM);
+  const scale=4, border=3, size=(qr.size+border*2)*scale;
+  canvas.width=size; canvas.height=size;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,size,size);
+  ctx.fillStyle="#000000";
+  for(let y=0;y<qr.size;y++)for(let x=0;x<qr.size;x++)
+    if(qr.getModule(x,y)) ctx.fillRect((x+border)*scale,(y+border)*scale,scale,scale);
+  return true;
+}
+
+/* ---------- render everything ---------- */
+function render(){
+  $("#wkendRow").style.display = $("#wkend").checked ? "grid" : "none";
+  $("#fadeRow").style.display  = $("#useFade").checked ? "block" : "none";
+  $("#superviseFlag").style.display = $("#protocol").value==="chrono" ? "block" : "none";
+  $("#chronoReview").textContent = ($("#protocol").value==="chrono" && !$("#dreview").value)
+    ? " ⚠ Set a review date above." : "";
+
+  const start = $("#dstart").value || isoToday();
+  const f = fadeInfo();
+  let fadeText = "";
+  if(f){
+    const stepFmt = f.step>=60 ? (f.step%60 ? (f.step/60).toFixed(1) : f.step/60)+" h" : f.step+" min";
+    const nightsWord = "every "+(f.every>1 ? f.every+" nights" : "night");
+    const tail = "reaches the "+clock(f.target)+" target on night "+f.reachNight+
+      " ("+fmtD(addDays(start, f.reachNight-1))+").";
+    fadeText = f.mode==="delay"
+      ? "Bedtime starts at "+clock(f.from)+" and moves "+stepFmt+" later "+nightsWord+
+        ", around the clock, until it "+tail
+      : "Bedtime starts at "+clock(f.from)+", moves "+stepFmt+" "+
+        (f.dir<0?"earlier":"later")+" "+nightsWord+", and "+tail;
+    $("#fadeSummary").textContent = fadeText;
+  }
+
+  /* phone preview: tonight = plan night 1 */
+  const who = ($("#cname").value.trim()||"your clinician") + " · " + $("#crole").value;
+  $("#pvFrom").textContent = "PLAN · from "+who;
+  const bedTonight = f ? f.at(1) : hm($("#tbed").value);
+  let wakeTonight = hm($("#twake").value);
+  if(f && f.mode==="delay"){
+    /* chronotherapy: the whole sleep WINDOW shifts — wake follows bedtime */
+    const sleepDur = ((wakeTonight - hm($("#tbed").value))%1440+1440)%1440;
+    wakeTonight = (bedTonight + sleepDur)%1440;
+  }
+  $("#pvTonight").innerHTML = "Tonight ("+fmtD(start)+"): bedtime <b>"+
+    clock(bedTonight)+"</b> · wake <b>"+clock(wakeTonight)+"</b>";
+  $("#pvChecklist").innerHTML = picked.map(c=>
+    '<li><span class="box"></span>'+esc(c.label)+"</li>").join("");
+  const note=$("#note").value.trim();
+  $("#pvNote").textContent = note ? "“"+note+"”" : "";
+  $("#noteCount").textContent = $("#note").value.length;
+
+  /* staircase mini-chart of bedtime targets over 14 nights */
+  let stairs="";
+  if(f){
+    const n=14, w=300, hgt=64, pad=6;
+    const tv = f.mode==="delay" ? f.from+f.delta : f.target;
+    const times=[]; for(let i=1;i<=n;i++) times.push(f.atU(i));
+    const lo=Math.min(...times,tv)-10, hi=Math.max(...times,tv)+10;
+    const X=i=>pad+(w-2*pad)*(i/(n-1)), Y=t=>pad+(hgt-2*pad)*((t-lo)/(hi-lo||1));
+    let d=""; times.forEach((t,i)=>{ d+=(i?"L":"M")+X(i).toFixed(1)+" "+Y(t).toFixed(1)+" ";
+      if(i<n-1) d+="L"+X(i+1).toFixed(1)+" "+Y(t).toFixed(1)+" "; });
+    stairs='<svg viewBox="0 0 '+w+' '+hgt+'" aria-label="bedtime steps toward target">'+
+      '<line x1="'+pad+'" y1="'+Y(tv)+'" x2="'+(w-pad)+'" y2="'+Y(tv)+
+      '" stroke="var(--brand-accent)" stroke-dasharray="4 4" stroke-width="1.5"/>'+
+      '<path d="'+d+'" fill="none" stroke="var(--brand-ink)" stroke-width="2"/>'+
+      '<text x="'+(w-pad)+'" y="'+(Y(tv)-4)+'" text-anchor="end" font-size="10" '+
+      'font-family="var(--brand-font-heading)" fill="var(--brand-accent-text)">target '+
+      clock(f.target)+"</text></svg>"+
+      '<div class="meta" style="text-align:center">Bedtime steps night by night — drawn on their chart too</div>';
+  }
+  $("#pvStairs").innerHTML = stairs;
+
+  /* link + QR */
+  const p = payload(), json=JSON.stringify(p);
+  const link = APP_URL+"#plan="+b64url(json);
+  $("#linkline").textContent = link;
+  const qrOk = drawQR($("#qr"), link);
+  $("#bytes").textContent = json.length+" bytes"+(qrOk?" — one QR code":"")+
+    (qrOk?"":" (QR library missing — use the link)");
+
+  /* handout */
+  $("#hFrom").textContent = "From "+who+" · starts "+fmtD(start)+
+    ($("#dreview").value ? " · review "+fmtD($("#dreview").value) : "");
+  let tgt = "Bedtime "+clock(hm($("#tbed").value))+" · wake "+clock(hm($("#twake").value));
+  if($("#wkend").checked) tgt += " (weekends: "+clock(hm($("#tbedW").value))+" / "+clock(hm($("#twakeW").value))+")";
+  $("#hTargets").textContent = tgt + (fadeText ? " — "+fadeText+
+    " The diary shows each night's bedtime automatically." : "");
+  $("#hChecklist").innerHTML = picked.map(c=>"<li>"+esc(c.label)+"</li>").join("");
+  $("#hNote").textContent = note; $("#hNote").style.display = note ? "block" : "none";
+  $("#hLink").textContent = link;
+  if(qrOk) $("#hQr").src = $("#qr").toDataURL("image/png");
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* template chips + picked list */
+function renderChips(){
+  $("#tplChips").innerHTML="";
+  TEMPLATES.forEach(t=>{
+    const b=document.createElement("button"); b.className="chip"; b.type="button";
+    b.textContent="+ "+t.label;
+    b.disabled = picked.some(p=>p.id===t.id);
+    b.onclick=()=>{ picked.push(t); renderChips(); render(); };
+    $("#tplChips").append(b);
+  });
+  $("#picked").innerHTML="";
+  picked.forEach((c,i)=>{
+    const li=document.createElement("li"); li.textContent=c.label;
+    const x=document.createElement("button"); x.className="x"; x.type="button"; x.textContent="×";
+    x.setAttribute("aria-label","Remove "+c.label);
+    x.onclick=()=>{ picked.splice(i,1); renderChips(); render(); };
+    li.append(x); $("#picked").append(li);
+  });
+}
+
+$("#addCustom").onclick=()=>{
+  const v=$("#customItem").value.trim(); if(!v) return;
+  picked.push({id:"custom"+(++customN), label:v}); $("#customItem").value="";
+  renderChips(); render();
+};
+$("#customItem").addEventListener("keydown",e=>{ if(e.key==="Enter"){e.preventDefault();$("#addCustom").click();} });
+$("#copyLink").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText($("#linkline").textContent);
+    $("#copyLink").textContent="Copied ✓"; setTimeout(()=>$("#copyLink").textContent="Copy link",1400);
+  }catch(e){ alert("Copy failed — select the link text manually."); }
+};
+$("#printBtn").onclick = ()=>{ render(); window.print(); };
+$("#protocol").addEventListener("change",()=>{ applyProtocol($("#protocol").value); renderChips(); render(); });
+document.querySelectorAll("input,select,textarea").forEach(el=>{
+  el.addEventListener("input",render); el.addEventListener("change",render);
+});
+
+/* defaults: start today, review in 2 weeks */
+$("#dstart").value = isoToday();
+$("#dreview").value = addDays(isoToday(), 14);
+renderChips(); render();
+})();
+</script>
+</body>
+</html>

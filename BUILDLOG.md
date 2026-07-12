@@ -230,3 +230,24 @@ credited contributions land, any change needs every contributor's sign-off.
 Talking point: licenses enforce themselves through big organizations'
 compliance departments — the small honest users you'd never chase are
 exactly the ones you exempted anyway.
+
+### 2026-07-11 (late night, cont.) — clinician plans SHIPPED (spec → mockup → feature in one evening)
+The plan-push spec became real code. `plan.html` (clinician-side) is the
+morning's mockup promoted to production: real QR codes (vendored Nayuki
+qrcodegen, MIT, compiled from the official TypeScript), a printable family
+handout with scan-me instructions, and an app link derived from the page's
+own directory so rehosted copies work unchanged. Diary-side (`index.html`):
+`#plan=` capsules are decoded on load and the fragment immediately scrubbed
+from the URL bar; an accept card lets the family add or decline; the entry
+form gains a plan strip showing THAT night's computed target (fade schedules
+and chronotherapy's around-the-clock delay mode both implemented) plus
+checklist tap-offs stored per entry; the chart draws dashed terracotta
+target ticks (appended after the bars so they stay visible); Summary, the
+MyChart text export, and the PDF report all gained a plan-adherence table.
+Verified end-to-end in the browser: built a bedtime-fading plan dated 3 days
+back, accepted it, logged two nights, and confirmed the numbers by hand —
++10 and +25 min lights-out deviations reported as +18 mean, tick x-positions
+exact to the pixel. CACHE_VERSION 2.1.6 → 2.2.0, demo/www rebuilt.
+Talking point: the entire "backend" for pushing a treatment plan into a
+patient-held app is base64 in a URL fragment — zero infrastructure, zero
+PHI exposure, and it shipped the same day it was designed.

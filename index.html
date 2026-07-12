@@ -171,6 +171,7 @@ table.pernight th{color:var(--color-text-muted);font-weight:700;font-size:11.5px
 .legend .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:5px}
 .legend .sw.night{background:var(--color-accent)}
 .legend .sw.nap{background:var(--brand-accent-border);border:1px solid var(--color-accent)}
+.legend .sw.target{background:transparent;width:4px;border-left:3px dashed var(--color-warning);border-radius:0}
 /* SVG chart parts (colors resolve with the theme) */
 svg.sleepchart .c-grid{stroke:var(--color-border);stroke-width:1}
 svg.sleepchart .c-glabel{fill:var(--color-text-muted);font-family:var(--brand-font-heading)}
@@ -179,6 +180,7 @@ svg.sleepchart .c-rowbg{fill:var(--color-bg);stroke:var(--color-border)}
 svg.sleepchart .c-night{fill:var(--color-accent)}
 svg.sleepchart .c-nap{fill:var(--brand-accent-border);stroke:var(--color-accent);stroke-width:.75}
 svg.sleepchart .c-arrow{stroke:var(--color-text);stroke-width:1.6;fill:none}
+svg.sleepchart .c-target{stroke:var(--color-warning);stroke-width:1.5;stroke-dasharray:3 3;fill:none}
 /* tabs */
 nav.tabs{
   position:fixed;left:0;right:0;bottom:0;background:var(--color-surface);border-top:1px solid var(--color-border);
@@ -212,6 +214,15 @@ pre.export{
 .nsf-flag.may{background:var(--brand-warning-tint);border:1px solid var(--brand-warning-border);color:var(--color-text)}
 .nsf-flag.out{background:var(--brand-warning-tint);border:2px solid var(--color-warning);color:var(--color-text)}
 .nsf-flag b{font-family:var(--brand-font-heading)}
+/* clinician plan strip (entry form) and plan cards */
+.plan-strip{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);
+  border-radius:var(--brand-radius);padding:10px 12px;margin-top:10px}
+.plan-strip .pf{font-size:11.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--color-link);font-family:var(--brand-font-heading)}
+.plan-strip .pt{font-weight:700;font-family:var(--brand-font-heading);font-size:15px;margin-top:2px;color:var(--color-text)}
+.plan-strip label.pl{display:flex;align-items:flex-start;gap:8px;font-size:14px;margin:8px 0 0;
+  font-weight:400;color:var(--color-text);text-transform:none;letter-spacing:0;cursor:pointer}
+.plan-strip label.pl input{width:auto;min-width:16px;margin-top:3px;accent-color:var(--brand-accent);-webkit-appearance:checkbox;appearance:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ============================================================
@@ -348,7 +359,7 @@ const KV = {
 
 /* ---------- state (v2: multiple children) ---------- */
 let state = null;
-function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{} }; }
+function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{}, plan:null, planHistory:[] }; }
 function blankState(){
   return { version:2, activeChild:"c1", children:{ c1: blankChild() },
            meta:{ lastBackupAt:null, reminder:{ enabled:false, time:"07:00" } },
@@ -366,6 +377,8 @@ function migrateState(s){
       if (!c.settings) c.settings = { initials:"", ageBand:"" };
       if (c.settings.ageBand === undefined) c.settings.ageBand = "";
       if (!c.entries) c.entries = {};
+      if (c.plan === undefined) c.plan = null;
+      if (!Array.isArray(c.planHistory)) c.planHistory = [];
     });
     return s;
   }
@@ -579,6 +592,82 @@ function computeSRI(){
   if (!total) return null;
   return -100 + 200*(same/total);
 }
+/* ---------- clinician sleep plan (QR/link capsule) ----------
+   A plan arrives as #plan=<base64url(JSON)> in the URL fragment — created
+   by plan.html (or a rehosted copy) and never sent to any server. It is
+   display-only: targets, an optional stepped schedule, a checklist, a note.
+   The fade math mirrors plan.html's fadeInfo(); keep the two in sync. */
+function decodePlanParam(b64){
+  try{
+    const raw = b64.replace(/-/g,"+").replace(/_/g,"/");
+    const p = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if (p && p.v===1 && p.start && p.targets && (p.targets.bedtime || p.targets.wake)) return p;
+  }catch(err){}
+  return null;
+}
+function daysFrom(aIso,bIso){
+  const u = s=>{ const [y,m,d]=s.split("-").map(Number); return Date.UTC(y,m-1,d); };
+  return Math.round((u(bIso)-u(aIso))/86400000);
+}
+function clockMin(m){ return clock(((m-720)%1440+1440)%1440); } // minutes-from-midnight -> h:mm AM/PM
+function planWho(plan){
+  return ((plan.from && plan.from.name) || "your clinician")
+       + (plan.from && plan.from.role ? " ("+plan.from.role+")" : "");
+}
+/* Tonight's computed targets for the night beginning on dateIso.
+   Night 1 = plan.start. Weekend targets apply to Fri/Sat evenings. */
+function planTargets(plan, dateIso){
+  if (!plan || !plan.start || !dateIso) return null;
+  const n = daysFrom(plan.start, dateIso) + 1;
+  if (n < 1) return null;
+  const t = plan.targets || {};
+  const [y,mo,d] = dateIso.split("-").map(Number);
+  const dow = new Date(y,mo-1,d).getDay();
+  const wknd = (dow===5 || dow===6);
+  let bed  = (wknd && t.weekendBedtime) ? hm(t.weekendBedtime) : (t.bedtime ? hm(t.bedtime) : null);
+  let wake = (wknd && t.weekendWake)    ? hm(t.weekendWake)    : (t.wake    ? hm(t.wake)    : null);
+  const f = plan.fade;
+  if (f && f.from && bed!=null){
+    const from = hm(f.from), step = Number(f.stepMin)||15, every = Number(f.everyNights)||3;
+    if (f.mode === "delay"){
+      /* chronotherapy: bedtime moves LATER around the clock; the whole
+         sleep window shifts, so wake follows bedtime until the target */
+      const delta = (((bed-from)%1440)+1440)%1440 || 1440;
+      const shift = Math.min(delta, Math.floor((n-1)/every)*step);
+      const b2 = (from+shift)%1440;
+      if (wake!=null){ const durS = ((wake-bed)%1440+1440)%1440; wake = (b2+durS)%1440; }
+      bed = b2;
+    } else {
+      const dir = bed<from ? -1 : 1;
+      const shift = Math.floor((n-1)/every)*step*dir;
+      bed = dir<0 ? Math.max(bed, from+shift) : Math.min(bed, from+shift);
+    }
+  }
+  return { n, bed, wake };
+}
+/* Checklist adherence + mean lights-out deviation across plan nights. */
+function planAdherence(){
+  const plan = cur().plan;
+  if (!plan) return null;
+  const rows = sortedEntries().filter(e=> daysFrom(plan.start, e.date) >= 0);
+  if (!rows.length) return null;
+  const items = (plan.checklist||[]).map(it=>({
+    label: it.label,
+    done: rows.filter(e=> e.adherence && e.adherence[it.id]).length,
+    of: rows.length
+  }));
+  const devs = [];
+  rows.forEach(e=>{
+    const t = planTargets(plan, e.date);
+    if (t && t.bed!=null && e.lightsOut){
+      let dv = hm(e.lightsOut) - t.bed;
+      if (dv > 720) dv -= 1440; if (dv < -720) dv += 1440; // shortest signed distance
+      devs.push(dv);
+    }
+  });
+  return { nights: rows.length, items, bedDev: devs.length ? mean(devs) : NaN };
+}
+
 /* ============================================================
    UI
    ============================================================ */
@@ -710,6 +799,60 @@ function installBanner(){
 /* ---------- diary view ---------- */
 let editing = null;      // date being edited, or "__new__"
 let newEntryDate = null; // preset date when adding a missed night
+let pendingPlan = null;  // decoded #plan= capsule awaiting the family's accept
+
+function planOfferCard(){
+  const p = pendingPlan;
+  const c = el("div",{class:"card tint"});
+  c.append(el("h2",null,"Sleep plan received", el("span",{class:"big"},"From "+planWho(p))));
+  const t = planTargets(p, p.start) || {};
+  const bits = [];
+  if (t.bed!=null)  bits.push("bedtime "+clockMin(t.bed));
+  if (t.wake!=null) bits.push("wake "+clockMin(t.wake));
+  c.append(el("div",null,"Starts "+fmtDate(p.start)+(bits.length? " — night 1: "+bits.join(" · ") : "")));
+  if (p.fade && p.fade.from)
+    c.append(el("div",{class:"hint"},"The bedtime target moves step by step — the diary shows each night's target automatically."));
+  if ((p.checklist||[]).length)
+    c.append(el("div",{class:"hint"},"Nightly checklist: "+p.checklist.map(i=>i.label).join(" · ")));
+  if (p.note) c.append(el("div",{class:"hint",style:"font-style:italic"},"“"+p.note+"”"));
+  const who = cur().settings.initials;
+  c.append(el("div",{class:"hint"},
+    "Adding it attaches the plan to "+(who? who+"'s diary" : "the child selected in Setup below")+
+    " on this phone. It only changes what's shown while you log — never your entries, and nothing is uploaded."));
+  c.append(el("div",{class:"btn-row"},
+    el("button",{class:"btn-secondary",onclick:()=>{ pendingPlan=null; renderDiary(); }},"Not now"),
+    el("button",{class:"btn-primary",onclick:()=>{
+      const ch = cur();
+      if (ch.plan){ ch.planHistory = ch.planHistory||[]; ch.planHistory.push(ch.plan); }
+      ch.plan = pendingPlan; pendingPlan = null;
+      saveState(); toast("Plan added"); renderDiary();
+    }},"Add this plan")
+  ));
+  return c;
+}
+function planCard(){
+  const p = cur().plan;
+  const c = el("div",{class:"card"});
+  c.append(el("h2",null,"Sleep plan", el("span",{class:"big"},"From "+planWho(p))));
+  const t = planTargets(p, isoToday());
+  if (t){
+    const bits=[];
+    if (t.bed!=null)  bits.push("bedtime "+clockMin(t.bed));
+    if (t.wake!=null) bits.push("wake "+clockMin(t.wake));
+    c.append(el("div",null, el("b",null,"Tonight (night "+t.n+"): "), bits.join(" · ")));
+  } else {
+    c.append(el("div",{class:"hint"},"Starts "+fmtDate(p.start)+"."));
+  }
+  if (p.review) c.append(el("div",{class:"hint"},"Review visit: "+fmtDate(p.review)));
+  if (p.note) c.append(el("div",{class:"hint",style:"font-style:italic"},"“"+p.note+"”"));
+  c.append(el("button",{class:"btn-danger",style:"margin-top:6px;padding-left:0",onclick:()=>{
+    if (confirm("Remove this plan from the diary? Your recorded nights are not affected.")){
+      const ch=cur(); ch.planHistory=ch.planHistory||[]; ch.planHistory.push(ch.plan); ch.plan=null;
+      saveState(); renderDiary(); toast("Plan removed");
+    }
+  }},"Remove this plan…"));
+  return c;
+}
 
 function missingNights(){
   const entries = sortedEntries();
@@ -740,6 +883,9 @@ function renderDiary(){
     v.append(entryForm(editing === "__new__" ? null : cur().entries[editing], preset));
     return;
   }
+
+  /* clinician plan arriving via link — the family decides */
+  if (pendingPlan) v.append(planOfferCard());
 
   /* install prompt (browser only; hidden once installed or dismissed) */
   const inst = installBanner();
@@ -818,6 +964,9 @@ function renderDiary(){
   }
   v.append(setup);
 
+  /* active clinician plan (if any) */
+  if (cur().plan) v.append(planCard());
+
   v.append(el("button",{class:"btn-primary",onclick:()=>{ editing="__new__"; renderDiary(); }},"+ Add last night"));
 
   /* missed nights */
@@ -875,6 +1024,7 @@ function entryForm(existing, presetDate){
     lightsOut:"", onset:"", wake:"", outOfBed:"",
     awakenings:[], naps:[], notes:""
   };
+  e.adherence = e.adherence || {};
   const inputs = {};
   const touched = new Set(existing ? ['lightsOut','onset','wake','outOfBed'].filter(k=>e[k]) : []);
   const card = el("div",{class:"card"});
@@ -906,9 +1056,33 @@ function entryForm(existing, presetDate){
 
   card.append(
     el("label",null,"Date (the evening the night began)"),
-    el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); }}));
+    el("input",{type:"date", value:e.date, oninput:ev=>{ e.date=ev.target.value; $("#fDateLabel").textContent = fmtDate(e.date); drawPlanStrip(); }}));
   /* DOM append() coerces null to the string "null" — only add the hint when it exists */
   if (prev) card.append(el("div",{class:"hint"},"Times start from your last entry ("+fmtDate(prev.date)+") — adjust what changed."));
+
+  /* clinician plan strip: that night's computed targets + checklist */
+  const plan = cur().plan;
+  const planBox = el("div");
+  function drawPlanStrip(){
+    planBox.innerHTML = "";
+    if (!plan) return;
+    const t = planTargets(plan, e.date);
+    if (!t) return;
+    const strip = el("div",{class:"plan-strip"});
+    strip.append(el("div",{class:"pf"},"Plan · night "+t.n+" · from "+planWho(plan)));
+    const bits=[];
+    if (t.bed!=null)  bits.push("bedtime "+clockMin(t.bed));
+    if (t.wake!=null) bits.push("wake "+clockMin(t.wake));
+    if (bits.length) strip.append(el("div",{class:"pt"},"Target: "+bits.join(" · ")));
+    (plan.checklist||[]).forEach(it=>{
+      const cb = el("input",{type:"checkbox", ...(e.adherence[it.id]?{checked:""}:{}),
+        onchange:ev=>{ e.adherence[it.id]=ev.target.checked; }});
+      strip.append(el("label",{class:"pl"}, cb, it.label));
+    });
+    planBox.append(strip);
+  }
+  drawPlanStrip();
+  card.append(planBox);
   card.append(
     el("div",{class:"grid2"},
       timeField("Lights out / put in bed","lightsOut",{defaultVal:"20:00",cascadeTo:"onset"}),
@@ -1027,11 +1201,22 @@ function buildChartSVG(entries){
     svg.append(S("line",{class:"c-grid",x1:gx,y1:TOP-6,x2:gx,y2:H-10}));
     svg.append(S("text",{class:"c-glabel",x:gx,y:TOP-12,"text-anchor":"middle","font-size":10.5},labels[i]));
   }
+  /* plan target ticks are appended after all rows so they stay visible on
+     top of the sleep bars */
+  const plan = cur().plan, tickEls = [];
   entries.forEach((e,ri)=>{
     const y = TOP + ri*(ROWH+GAP);
     const c = computeNight(e);
     svg.append(S("text",{class:"c-dlabel",x:LEFT-8,y:y+ROWH/2+4,"text-anchor":"end","font-size":11}, fmtDateShort(e.date)));
     svg.append(S("rect",{class:"c-rowbg",x:LEFT,y:y,width:plotW,height:ROWH}));
+    if (plan){
+      const t = planTargets(plan, e.date);
+      if (t) [t.bed, t.wake].forEach(m=>{
+        if (m==null) return;
+        const tx = x(((m-720)%1440+1440)%1440);
+        tickEls.push(S("line",{class:"c-target",x1:tx,y1:y+1,x2:tx,y2:y+ROWH-1}));
+      });
+    }
     if (!c.valid) return;
     (e.naps||[]).forEach(n=>{
       if (!(n.asleep && n.woke)) return;
@@ -1066,6 +1251,7 @@ function buildChartSVG(entries){
       if (n.out) svg.append(arrow(mfn(n.out),true));
     });
   });
+  tickEls.forEach(t=> svg.append(t));
   return svg;
 }
 function renderChart(){
@@ -1082,6 +1268,7 @@ function renderChart(){
   card.append(el("div",{class:"legend"},
     el("span",null, el("span",{class:"sw night"}),"Night sleep"),
     el("span",null, el("span",{class:"sw nap"}),"Nap"),
+    cur().plan ? el("span",null, el("span",{class:"sw target"}),"Plan target") : null,
     el("span",null,"↓ into bed · ↑ out of bed")
   ));
   v.append(card);
@@ -1126,6 +1313,27 @@ function renderSummary(){
   card.append(el("div",{class:"hint",style:"margin-top:8px"},
     "Bedtime/onset/wake variability is shown as ± SD. Sleep efficiency = night sleep ÷ time in bed."));
   v.append(card);
+
+  /* clinician plan adherence */
+  const pa = planAdherence();
+  if (pa){
+    const plan = cur().plan;
+    const pc = el("div",{class:"card"});
+    pc.append(el("h2",null,"Plan adherence",
+      el("span",{class:"big"},"Since "+fmtDate(plan.start)+" · "+pa.nights+" night"+(pa.nights>1?"s":"")+" · from "+planWho(plan))));
+    if (!isNaN(pa.bedDev))
+      pc.append(el("div",null, el("b",null,"Lights out vs. target: "),
+        (pa.bedDev>=0?"+":"")+Math.round(pa.bedDev)+" min on average"));
+    if (pa.items.length){
+      const tbl = el("table",{class:"pernight"});
+      tbl.append(el("tr",null, el("th",null,"Checklist item"), el("th",null,"Done"), el("th",null,"%")));
+      pa.items.forEach(it=> tbl.append(el("tr",null,
+        el("td",null,it.label), el("td",null,it.done+" / "+it.of),
+        el("td",null, it.of ? Math.round(100*it.done/it.of)+"%" : "—"))));
+      const sc = el("div",{class:"scrollx"}); sc.append(tbl); pc.append(sc);
+    }
+    v.append(pc);
+  }
 
   // per-night table
   const tcard = el("div",{class:"card"});
@@ -1182,6 +1390,18 @@ function buildTextReport(){
     L.push("SLEEP NEED ("+cmp.band.label+")");
     L.push("  "+cmp.text);
     L.push("  "+NSF_CITATION);
+  }
+  const plan = cur().plan, pa = planAdherence();
+  if (plan && pa){
+    L.push("");
+    L.push("SLEEP PLAN (from "+planWho(plan)+", started "+fmtDate(plan.start)+")");
+    const t0 = plan.targets||{}, tb=[];
+    if (t0.bedtime) tb.push("bedtime "+clockFromHM(t0.bedtime));
+    if (t0.wake) tb.push("wake "+clockFromHM(t0.wake));
+    L.push("  Target: "+tb.join("  ")+(plan.fade? "  (stepped schedule)" : ""));
+    if (!isNaN(pa.bedDev))
+      L.push("  Lights out vs. target: "+(pa.bedDev>=0?"+":"")+Math.round(pa.bedDev)+" min (mean over "+pa.nights+" nights)");
+    pa.items.forEach(it=> L.push("  "+it.label+": "+it.done+"/"+it.of+" nights ("+(it.of?Math.round(100*it.done/it.of):0)+"%)"));
   }
   L.push("");
   L.push("NIGHT BY NIGHT");
@@ -1260,7 +1480,27 @@ function buildPrintReport(){
     box.append(el("div",{class:"nsf-flag "+cmp.cls},
       el("b",null,"24-hour sleep vs. age ("+cmp.band.label+"): "), cmp.text, " ", NSF_CITATION));
   }
-  box.append(el("h2",null,"Sleep chart (each row one day, noon → noon; dark = night sleep, light = nap)"));
+  const plan = cur().plan, pa = planAdherence();
+  if (plan && pa){
+    box.append(el("h2",null,"Sleep plan — "+planWho(plan)+", started "+fmtDate(plan.start)
+      +(plan.review? " · review "+fmtDate(plan.review) : "")));
+    const t0 = plan.targets||{}, tb=[];
+    if (t0.bedtime) tb.push("bedtime "+clockFromHM(t0.bedtime));
+    if (t0.wake) tb.push("wake "+clockFromHM(t0.wake));
+    const dev = isNaN(pa.bedDev) ? "" :
+      " · lights out vs. target "+(pa.bedDev>=0?"+":"")+Math.round(pa.bedDev)+" min (mean)";
+    box.append(el("div",null,"Target "+tb.join(" · ")+(plan.fade? " (stepped schedule — dashed lines on the chart)" : "")+dev));
+    if (pa.items.length){
+      const tbl = el("table",null,
+        el("tr",null,["Checklist item","Done","%"].map(h=>el("th",null,h))));
+      pa.items.forEach(it=> tbl.append(el("tr",null,
+        el("td",null,it.label), el("td",null,it.done+" / "+it.of),
+        el("td",null,(it.of?Math.round(100*it.done/it.of):0)+"%"))));
+      box.append(tbl);
+    }
+  }
+  box.append(el("h2",null,"Sleep chart (each row one day, noon → noon; dark = night sleep, light = nap"
+    +(plan? "; dashed = plan target" : "")+")"));
   box.append(buildChartSVG(sortedEntries()));
   box.append(el("h2",null,"Night by night"));
   box.append(perNightTable(s));
@@ -1549,6 +1789,15 @@ async function driveRestore(){
   /* Write through immediately so IndexedDB (the durable store) holds the
      current state even if the user never edits this session. */
   KV.set(STORE_KEY, JSON.stringify(state));
+  /* A clinician plan arriving in the URL fragment (#plan=…) — decode it,
+     then scrub the fragment so the capsule never lingers in the address
+     bar or history. The family accepts or declines on the Diary tab. */
+  const planMatch = location.hash.match(/[#&]plan=([A-Za-z0-9\-_]+)/);
+  if (planMatch){
+    pendingPlan = decodePlanParam(planMatch[1]);
+    try{ history.replaceState(null, "", location.pathname + location.search); }catch(err){}
+    if (!pendingPlan) toast("That plan link could not be read — ask for a new one.");
+  }
   /* Re-assert the daily reminder in the native shell (survives OS cleanups). */
   if (IS_NATIVE && state.meta.reminder.enabled) applyReminder().catch(()=>{});
   render();
