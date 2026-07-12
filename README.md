@@ -206,6 +206,13 @@ Still ahead:
   this repo (see [NATIVE.md](NATIVE.md)) — enables reliable daily reminder
   notifications.
 - **Clinic pilot** — QR handout, feedback from real families, then iterate.
+- **Enable Google Drive backup** — register a free Google Cloud OAuth client
+  ID (consent screen + `https://craigcanaparimd.github.io` as authorized
+  origin) and paste it into `GOOGLE_CLIENT_ID` in `index.html`. The code has
+  shipped for a while; only the registration is missing. Backups go to the
+  **family's own Drive** via a `drive.file`-scoped token (the app can touch
+  only the one file it creates) — no data ever passes through the developer.
+  ~15 minutes, and the single biggest remaining data-loss protection.
 - **[Consultant sync & caseload dashboard](docs/specs/consultant-sync.md)** —
   opt-in, invite-driven sharing with a sleep consultant's dashboard
   (commercial track; the family app stays local-first and account-free).
