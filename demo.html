@@ -393,7 +393,7 @@ const KV = {
 
 /* ---------- state (v2: multiple children) ---------- */
 let state = null;
-function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{}, plan:null, planHistory:[] }; }
+function blankChild(){ return { settings:{ initials:"", ageBand:"" }, entries:{}, plan:null, planHistory:[], research:{ participantCode:"" } }; }
 function blankState(){
   return { version:2, activeChild:"c1", children:{ c1: blankChild() },
            meta:{ lastBackupAt:null, reminder:{ enabled:false, time:"07:00" } },
@@ -413,6 +413,7 @@ function migrateState(s){
       if (!c.entries) c.entries = {};
       if (c.plan === undefined) c.plan = null;
       if (!Array.isArray(c.planHistory)) c.planHistory = [];
+      if (!c.research) c.research = { participantCode:"" };
     });
     return s;
   }
@@ -1478,6 +1479,35 @@ function buildCSV(){
   });
   return out.join("\n");
 }
+/* REDCap-ready research export (Phase A — see redcap/README.md).
+   Differences from the clinic CSV: record_id is the study's participant
+   code (never initials), repeat instances are days-since-first-night so
+   re-imports update rather than duplicate, and free-text notes are
+   deliberately omitted. Column names match redcap/sleep_diary_data_dictionary.csv. */
+function buildResearchCSV(){
+  const code = ((cur().research && cur().research.participantCode) || "").trim();
+  const rows = sortedEntries();
+  const head = ["record_id","redcap_repeat_instrument","redcap_repeat_instance","night_date",
+    "lights_out","sleep_onset","final_wake","out_of_bed","sol_min","tst_min","tib_min","se_pct",
+    "waso_min","n_awakenings","n_parent_interventions","awakenings_detail","n_naps","nap_sleep_min","naps_detail"];
+  const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
+  const out = [head.join(",")];
+  if (!rows.length) return out.join("\n");
+  const first = rows[0].date;
+  rows.forEach(e=>{
+    const c = computeNight(e);
+    const awd = (e.awakenings||[]).map(a=>a.time+" ("+a.dur+"m, "+(HELP_LABELS[a.help]||a.help)+")").join("; ");
+    const npd = (e.naps||[]).map(n=>(n.inBed||"")+"/"+(n.asleep||"")+"-"+(n.woke||"")+"/"+(n.out||"")).join("; ");
+    out.push([code, "sleep_night", daysFrom(first, e.date)+1, e.date,
+      e.lightsOut, e.onset, e.wake, e.outOfBed,
+      c.valid?Math.round(c.sol):"", c.valid?Math.round(c.tst):"", c.valid?Math.round(c.tib):"",
+      c.valid&&!isNaN(c.se)?c.se.toFixed(1):"", c.valid?Math.round(c.waso):"",
+      c.valid?c.nAw:"", c.valid?c.nHelp:"", awd,
+      (e.naps||[]).length, c.valid?Math.round(c.napSleep):"", npd
+    ].map(esc).join(","));
+  });
+  return out.join("\n");
+}
 
 /* ---------- print / PDF report ---------- */
 function buildPrintReport(){
@@ -1588,6 +1618,35 @@ function renderShare(){
     }}, IS_NATIVE ? "Share CSV" : "Download CSV")
   ));
   v.append(card);
+
+  /* ---- research export (REDCap, Phase A — only shown workflow when a
+     study gives the family a participant code) ---- */
+  const rcard = el("div",{class:"card"});
+  rcard.append(el("h2",null,"Research use (optional)"));
+  rcard.append(el("div",{class:"hint",style:"margin:0 0 8px"},
+    "Only for families enrolled in a study. Enter the participant code your study team gave you, "+
+    "then send them the file the way the study asked. The file contains the code and sleep times only — "+
+    "no initials and no notes."));
+  const rcode = el("input",{type:"text", maxlength:"24", value:(cur().research&&cur().research.participantCode)||"",
+    placeholder:"e.g. P014",
+    oninput:e=>{ cur().research = cur().research||{}; cur().research.participantCode = e.target.value.trim(); saveState(); }});
+  rcard.append(el("label",null,"Participant code (from the study team)"), rcode);
+  rcard.append(el("div",{class:"btn-row"},
+    el("button",{class:"btn-secondary",onclick:async()=>{
+      const code = ((cur().research&&cur().research.participantCode)||"").trim();
+      if (!code){ toast("Enter your participant code first"); return; }
+      const name = "sleep-diary-redcap-"+code+"-"+isoToday()+".csv";
+      try { if (await shareFileNative(name, buildResearchCSV())) return; }
+      catch(err){ toast("Could not share the file"); return; }
+      const blob = new Blob([buildResearchCSV()],{type:"text/csv"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(a.href), 5000);
+    }}, IS_NATIVE ? "Share REDCap CSV" : "Download REDCap CSV")
+  ));
+  v.append(rcard);
 
   /* ---- backup card ---- */
   const bk = el("div",{class:"card"});

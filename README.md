@@ -135,7 +135,14 @@ Generate the QR code from your Pages URL with any QR generator.
 One row per night: `child_initials, date, lights_out, sleep_onset, final_wake,
 out_of_bed, sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
 n_parent_interventions, awakenings_detail, n_naps, nap_sleep_min, naps_detail,
-notes`. Times are 24-h clock; durations are minutes. Suitable for REDCap import.
+notes`. Times are 24-h clock; durations are minutes.
+
+**For research**: the [`redcap/`](redcap/) folder has a ready-made REDCap
+data dictionary and coordinator guide, and the app's Share tab has a
+"Research use" section — the family enters a participant code and downloads
+a REDCap-ready CSV (repeat instances keyed to study day; no initials, no
+notes). See [the REDCap spec](docs/specs/redcap-research-backend.md) for the
+planned direct-submission Phase B.
 
 ## NSF sleep-duration reference values (hours, by age)
 

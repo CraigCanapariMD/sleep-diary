@@ -251,3 +251,18 @@ exact to the pixel. CACHE_VERSION 2.1.6 → 2.2.0, demo/www rebuilt.
 Talking point: the entire "backend" for pushing a treatment plan into a
 patient-held app is base64 in a URL fragment — zero infrastructure, zero
 PHI exposure, and it shipped the same day it was designed.
+
+### 2026-07-11 (last call) — REDCap Phase A shipped
+The research on-ramp, exactly as specced this morning: a `redcap/` folder
+with a ready-made data dictionary (enrollment + repeating `sleep_night`
+instrument, 18-column format validated; teen screen fields included now so
+instruments won't fork later) and a coordinator guide, plus a "Research use"
+card in the Share tab — participant code in, REDCap-ready CSV out
+(record_id = code, repeat instance = days since first night so re-imports
+update instead of duplicate; initials and free-text notes deliberately
+stripped). Verified in-browser: seeded two nights, captured the actual
+download blob, checked every computed metric by hand (SOL 20 min, SE 94.1%
+— correct). CACHE_VERSION 2.2.0 → 2.2.1. Talking point: the app went from
+"suitable for REDCap import" (a README aspiration) to a working research
+instrument in one commit, because the CSV schema was designed for it from
+day one.
