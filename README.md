@@ -198,7 +198,9 @@ Still ahead:
   metrics (midsleep, SRI, weekday/weekend drift) are especially relevant to
   adolescent delayed sleep phase. Planned as a collaboration with two teenage
   co-developers (the author's sons), who will contribute as named,
-  credited contributors on this public repo — real, shipped, public work.
+  credited contributors on this public repo — real, shipped, public work;
+  the working plan (tooling, fork-and-PR structure, review-as-teaching) is
+  in [docs/teen-collaboration.md](docs/teen-collaboration.md).
   Open question: teen *mode* inside this app (shared codebase, shared fixes)
   vs. a separate teen-owned fork; leaning mode-plus-credit, decide when work
   starts.
