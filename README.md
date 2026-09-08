@@ -6,6 +6,7 @@
 - **Demo (preloaded with 7 nights of sample data):** https://craigcanaparimd.github.io/sleep-diary/demo.html
   — uses its own separate storage, so it never shows or touches a real diary
   on the same phone
+- **Plan builder mockup (design only, not the working tool):** https://craigcanaparimd.github.io/sleep-diary/docs/specs/plan-builder-mockup.html
 - **Sample exports** — what the clinic receives: [text summary](examples/sample-summary.txt) · [CSV](examples/sample-export.csv) · [PDF report](examples/sample-report.pdf)
 - **Source-available** under the [PolyForm Noncommercial license](LICENSE) —
   free for families, nonprofits, academic/government institutions, research,
