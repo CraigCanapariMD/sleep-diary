@@ -37,13 +37,13 @@ const seed = `<script>
       return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
     }
     var demo = [
-      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{inBed:"12:40",asleep:"12:55",woke:"14:10",out:"14:15"}]},
-      {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{inBed:"13:00",asleep:"13:10",woke:"14:20",out:"14:25"}]},
-      {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{inBed:"12:30",asleep:"12:50",woke:"13:55",out:"14:00"}]},
+      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{asleep:"12:55",dur:75,woke:"14:10"}]},
+      {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{asleep:"13:10",dur:70,woke:"14:20"}]},
+      {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{asleep:"12:50",dur:65,woke:"13:55"}]},
       {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
-      {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{inBed:"12:45",asleep:"13:00",woke:"14:30",out:"14:35"}]},
-      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{inBed:"13:10",asleep:"13:25",woke:"14:15",out:"14:20"}]},
-      {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{inBed:"12:50",asleep:"13:05",woke:"14:25",out:"14:30"}]}
+      {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{asleep:"13:00",dur:90,woke:"14:30"}]},
+      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{asleep:"13:25",dur:50,woke:"14:15"}]},
+      {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{asleep:"13:05",dur:80,woke:"14:25"}]}
     ];
     var entries = {};
     demo.forEach(function(d,i){

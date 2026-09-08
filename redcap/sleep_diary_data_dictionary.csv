@@ -17,7 +17,7 @@ n_parent_interventions,sleep_night,,text,Awakenings with parental help,,,integer
 awakenings_detail,sleep_night,,notes,Awakenings detail,,"Semicolon-separated: time (duration, help type)",,,,,,,,,,,
 n_naps,sleep_night,,text,Number of naps that day,,,integer,0,20,,,,,,,,
 nap_sleep_min,sleep_night,,text,Nap sleep (min),,Computed by the app,integer,0,1440,,,,,,,,
-naps_detail,sleep_night,,notes,Naps detail,,"Semicolon-separated: inBed/asleep-woke/outOfBed (24-h times)",,,,,,,,,,,
+naps_detail,sleep_night,,notes,Naps detail,,"Semicolon-separated: asleep-woke (24-h times); nights recorded before v2.4.0 may read inBed/asleep-woke/outOfBed",,,,,,,,,,,
 screen_off,sleep_night,,text,Last screen use ended,,"Teen self-report version only; blank in parent diaries",time,,,,,,,,,,
 screen_in_bed,sleep_night,,yesno,Screens used in bed,,"Teen self-report version only; blank in parent diaries",,,,,,,,,,,
 screen_after_lights_out,sleep_night,,yesno,Screen use after lights out,,"Teen self-report version only; derived, blank in parent diaries",,,,,,,,,,,

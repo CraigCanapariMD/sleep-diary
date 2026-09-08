@@ -310,6 +310,27 @@ DELETE. CACHE_VERSION 2.2.1 → 2.3.0, demo/www rebuilt. Talking point: the
 scariest bug wasn't in the sleep math — it was the backup that quietly
 forgot the doctor's plan.
 
+### 2026-09-08 — Naps become start time + duration
+Craig's call: the nap entry asked for four clock times (into bed, fell
+asleep, woke, out of bed) while a night awakening asked for one time and a
+number of minutes. Two different mental models for the same "how long was
+my kid asleep" question, and the four-field one is the harder ask at 6 AM.
+Naps now match awakenings — "Fell asleep at" plus "Slept for (minutes)" —
+with a small "Woke at 2:25 PM" line under the pair so a mistyped duration is
+visible before it reaches the chart. The stored `woke` time is derived from
+the pair, so the chart, the summary table, the REDCap export and the
+consultant-sync payload all keep reading the one field they already read;
+nothing downstream changed. Nights recorded under the old form still open
+correctly: `napDur()` falls back to the elapsed time between asleep and
+woke, and the export keeps printing their in-bed/out-of-bed pair
+(`napDetail()` drops it only when it is absent). The dropped in-bed/out-of-bed
+nap times were never surfaced anywhere — `napInBed` was computed and then
+used by nothing — so the only loss is the nap in-bed arrows on the chart for
+new entries. CACHE_VERSION 2.3.0 → 2.4.0, demo sample data and www rebuilt,
+REDCap dictionary note updated for the new naps_detail shape.
+Talking point: the feature wasn't "add a field," it was "notice that two
+screens asked the same question two different ways" — the kind of thing you
+only see when the person specifying it also uses it.
 
 ## Other tboughts
 

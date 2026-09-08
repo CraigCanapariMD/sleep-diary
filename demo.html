@@ -295,13 +295,13 @@ pre.export{
       return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
     }
     var demo = [
-      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{inBed:"12:40",asleep:"12:55",woke:"14:10",out:"14:15"}]},
-      {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{inBed:"13:00",asleep:"13:10",woke:"14:20",out:"14:25"}]},
-      {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{inBed:"12:30",asleep:"12:50",woke:"13:55",out:"14:00"}]},
+      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{asleep:"12:55",dur:75,woke:"14:10"}]},
+      {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{asleep:"13:10",dur:70,woke:"14:20"}]},
+      {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{asleep:"12:50",dur:65,woke:"13:55"}]},
       {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
-      {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{inBed:"12:45",asleep:"13:00",woke:"14:30",out:"14:35"}]},
-      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{inBed:"13:10",asleep:"13:25",woke:"14:15",out:"14:20"}]},
-      {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{inBed:"12:50",asleep:"13:05",woke:"14:25",out:"14:30"}]}
+      {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{asleep:"13:00",dur:90,woke:"14:30"}]},
+      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{asleep:"13:25",dur:50,woke:"14:15"}]},
+      {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{asleep:"13:05",dur:80,woke:"14:25"}]}
     ];
     var entries = {};
     demo.forEach(function(d,i){
@@ -506,6 +506,11 @@ function nsfCompare(tst24min){
 
 /* ---------- time helpers ---------- */
 function hm(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }           // minutes from midnight
+function hmAdd(t, mins){                                                        // "HH:MM" + minutes -> "HH:MM"
+  const m = (((hm(t) + Math.round(mins)) % 1440) + 1440) % 1440;
+  return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0");
+}
+function hmElapsed(a, b){ return ((hm(b) - hm(a)) + 1440) % 1440; }             // clock minutes from a to b
 function mfn(t){ return ((hm(t) - 720) + 1440) % 1440; }                          // minutes from noon
 function clock(mfnVal){                                                            // mfn -> "h:mm AM/PM"
   let m = ((Math.round(mfnVal) % 1440)+1440)%1440;
@@ -522,6 +527,19 @@ function dur(mins){
   const h = Math.floor(mins/60), m = mins%60;
   if (h===0) return m + " min";
   return h + " h " + (m? m+" min" : "");
+}
+/* Nap length in minutes. Naps entered before the duration field existed only
+   carry asleep/woke, so fall back to the elapsed clock time between them. */
+function napDur(n){
+  if (n.dur !== undefined && n.dur !== "" && n.dur !== null) return String(n.dur);
+  if (n.asleep && n.woke) return String(hmElapsed(n.asleep, n.woke));
+  return "";
+}
+/* "inBed/asleep-woke/outOfBed" for the exports; the in-bed pair only exists on
+   naps entered before the duration field, so drop it when it is empty. */
+function napDetail(n){
+  const core = (n.asleep||"")+"-"+(n.woke||"");
+  return (n.inBed || n.out) ? (n.inBed||"")+"/"+core+"/"+(n.out||"") : core;
 }
 function isoToday(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function fmtDate(iso){
@@ -1199,17 +1217,29 @@ function entryForm(existing, presetDate){
     el("button",{class:"btn-ghost",onclick:()=>{ e.awakenings.push({time:"",dur:"",help:"none"}); redrawAw(); }},"+ Add an awakening")
   );
 
-  /* naps (during the day before this night) */
+  /* naps (during the day before this night) — start time + duration, the same
+     shape as a night awakening; n.woke stays the stored end time so the chart,
+     the report and the exports keep reading one field. */
   const napBox = el("div");
   function napRow(n, idx){
+    const endHint = el("div",{class:"hint"});
+    function showEnd(){
+      endHint.textContent = n.woke ? "Woke at "+clockFromHM(n.woke) : "";
+    }
+    function setEnd(){
+      n.woke = (n.asleep && n.dur !== "" && Number(n.dur) > 0) ? hmAdd(n.asleep, Number(n.dur)) : "";
+      showEnd();
+    }
+    showEnd();
     return el("div",{class:"sub-item"},
       el("button",{class:"btn-danger rm",onclick:()=>{ e.naps.splice(idx,1); redrawNaps(); }},"Remove"),
       el("div",{class:"grid2"},
-        el("div",null, el("label",null,"Into bed/crib"), el("input",{type:"time",value:n.inBed||"",oninput:ev=>n.inBed=ev.target.value})),
-        el("div",null, el("label",null,"Fell asleep"), el("input",{type:"time",value:n.asleep||"",oninput:ev=>n.asleep=ev.target.value})),
-        el("div",null, el("label",null,"Woke up"), el("input",{type:"time",value:n.woke||"",oninput:ev=>n.woke=ev.target.value})),
-        el("div",null, el("label",null,"Out of bed/crib"), el("input",{type:"time",value:n.out||"",oninput:ev=>n.out=ev.target.value}))
-      )
+        el("div",null, el("label",null,"Fell asleep at"),
+          el("input",{type:"time",value:n.asleep||"",oninput:ev=>{ n.asleep=ev.target.value; setEnd(); }})),
+        el("div",null, el("label",null,"Slept for (minutes)"),
+          el("input",{type:"number",min:"1",step:"1",inputmode:"numeric",value:napDur(n),oninput:ev=>{ n.dur=ev.target.value; setEnd(); }}))
+      ),
+      endHint
     );
   }
   function redrawNaps(){
@@ -1220,7 +1250,7 @@ function entryForm(existing, presetDate){
   card.append(
     el("label",{style:"margin-top:14px"},"Naps that day (before this bedtime)"),
     napBox,
-    el("button",{class:"btn-ghost",onclick:()=>{ e.naps.push({inBed:"",asleep:"",woke:"",out:""}); redrawNaps(); }},"+ Add a nap")
+    el("button",{class:"btn-ghost",onclick:()=>{ e.naps.push({asleep:"",dur:"",woke:""}); redrawNaps(); }},"+ Add a nap")
   );
 
   card.append(
@@ -1245,7 +1275,7 @@ function entryForm(existing, presetDate){
     const clobbers = cur().entries[e.date] && (!existing || existing.date !== e.date);
     if (clobbers && !confirm("The night of "+fmtDate(e.date)+" is already recorded. Replace it with this entry?")) return;
     e.awakenings = e.awakenings.filter(a=>a.time && a.dur!=="");
-    e.naps = e.naps.filter(n=>n.asleep && n.woke);
+    e.naps = e.naps.filter(n=>n.asleep && n.woke && Number(napDur(n)) > 0);
     if (existing && existing.date !== e.date){ delete cur().entries[existing.date]; syncMarkDirty(existing.date); }
     cur().entries[e.date] = e;
     syncMarkDirty(e.date);
@@ -1519,7 +1549,7 @@ function buildCSV(){
   rows.forEach(e=>{
     const c = computeNight(e);
     const awd = (e.awakenings||[]).map(a=>a.time+" ("+a.dur+"m, "+(HELP_LABELS[a.help]||a.help)+")").join("; ");
-    const npd = (e.naps||[]).map(n=>(n.inBed||"")+"/"+(n.asleep||"")+"-"+(n.woke||"")+"/"+(n.out||"")).join("; ");
+    const npd = (e.naps||[]).map(napDetail).join("; ");
     out.push([who, e.date, e.lightsOut, e.onset, e.wake, e.outOfBed,
       c.valid?Math.round(c.sol):"", c.valid?Math.round(c.tst):"", c.valid?Math.round(c.tib):"",
       c.valid&&!isNaN(c.se)?c.se.toFixed(1):"", c.valid?Math.round(c.waso):"",
@@ -1547,7 +1577,7 @@ function buildResearchCSV(){
   rows.forEach(e=>{
     const c = computeNight(e);
     const awd = (e.awakenings||[]).map(a=>a.time+" ("+a.dur+"m, "+(HELP_LABELS[a.help]||a.help)+")").join("; ");
-    const npd = (e.naps||[]).map(n=>(n.inBed||"")+"/"+(n.asleep||"")+"-"+(n.woke||"")+"/"+(n.out||"")).join("; ");
+    const npd = (e.naps||[]).map(napDetail).join("; ");
     out.push([code, "sleep_night", daysFrom(first, e.date)+1, e.date,
       e.lightsOut, e.onset, e.wake, e.outOfBed,
       c.valid?Math.round(c.sol):"", c.valid?Math.round(c.tst):"", c.valid?Math.round(c.tib):"",
