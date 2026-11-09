@@ -168,6 +168,17 @@ Styled with the shared Canapari "Fossil" brand system — see
 
 ## Roadmap
 
+**Working plan:** [docs/ROADMAP.md](docs/ROADMAP.md) (November 2026). It
+orders the work in phases: (1) data shape and data quality: "got into bed"
+for teens, a second efficiency metric, a live preview of each night as it's
+entered, gentle plausibility notes, entry timestamps, a morning sleep-quality
+rating, and a sleep-timing graph in the report; (2) clinical content in the
+plan builder (CBT-I, bedtime game and bedtime pass, optional per-patient
+questions in Consensus Sleep Diary wording); (3) the clinic release; (4)
+everything below that waits for real use. New questions follow the Consensus
+Sleep Diary (Carney et al., *SLEEP* 2012) so the app stays comparable to the
+research standard.
+
 **Shipped from the roadmap** (specs kept in [`docs/specs/`](docs/specs/) as
 design history):
 
@@ -205,6 +216,21 @@ Still ahead:
   Open question: teen *mode* inside this app (shared codebase, shared fixes)
   vs. a separate teen-owned fork; leaning mode-plus-credit, decide when work
   starts.
+- **Parent view (under 13) and teen view (13 and up)** — direction set
+  2026-09-16, refined 2026-11-09: age sets the default view, and a one-time
+  parent/teen choice at setup (whoever's phone it is) can change it. The
+  "got into bed" time and the sleep efficiency counted from it come earlier,
+  in roadmap Phase 1, for the Teenager age band. Sleep medication and
+  nightmare fields become clinician-switched optional questions (Phase 2).
+- **Later protocol modules** — CBT for nightmares; CBT for narcolepsy.
+- **Research fork — Sleep Well Be Well (R61/R33)** — separate from the clinic
+  build and outside the security review. Intervention ages 6 months–5 years.
+  Needs: weekly feedback to parents; a personalized goal (move bedtime 15
+  minutes earlier each week for 3 weeks when mean bedtime is later than 9 pm);
+  validation of the diary against actigraphy;
+  REDCap export layer (and whether REDCap can hold a rolling log of all
+  entries). Open before any code: ownership and licensing of work done
+  under the award.
 - **App Store / Google Play releases** via the Capacitor shell already in
   this repo (see [NATIVE.md](NATIVE.md)) — enables reliable daily reminder
   notifications.

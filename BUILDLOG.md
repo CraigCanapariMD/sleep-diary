@@ -332,6 +332,32 @@ Talking point: the feature wasn't "add a field," it was "notice that two
 screens asked the same question two different ways" — the kind of thing you
 only see when the person specifying it also uses it.
 
+### 2026-11-09 — Roadmap session: Garay notes + three diary papers
+No code this session; a planning pass that produced docs/ROADMAP.md. The
+Yale ITS intake date still isn't set, so the time went to deciding what the
+app should store before any family uses it. Inputs: the 9/8 meeting with
+Dr. Garay (15 items, checked one by one against the code: only "no crying
+tracker" and "camping out isn't the default" were already true) and three
+papers: the Consensus Sleep Diary (Carney 2012), its validation against EEG
+and actigraphy (Dietch & Taylor 2021), and McHill/Czeisler/Klerman 2026 on
+online diaries. The papers changed the plan more than expected. The CSD
+already has, in validated 3rd-grade wording, most of what Danielle asked for
+(got into bed, caffeine, alcohol, sleep meds, "woke earlier than planned"),
+so new questions copy its wording. Dietch: diaries are accurate for sleep
+*timing* but overestimate sleep efficiency by ~7% with wide error, so the
+report leads with timing and judges SE on weekly means. McHill: people clean
+their own data when they *see* it, which turns "consistency checks" into a
+live one-row preview of the night instead of pop-ups. Decisions: parent/teen
+is asked once at setup (it's whoever's phone it is); "got into bed" and the
+second efficiency number ("SE from getting into bed", next to "SE from
+lights out") are teen-band only; a once-a-day *morning* reminder .ics, plus
+a chronotherapy calendar generated in the family's diary because phones
+don't print; "How did your child sleep last night?" on the CSD's 5-point
+scale, shown as faces the way CBT-i Coach does it. Phase 1 goes in before
+the security-review freeze.
+Talking point: the 2012 consensus diary had already answered half of the
+clinician's wish list. The work was reading it, not inventing the questions.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26
