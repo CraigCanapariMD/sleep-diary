@@ -358,6 +358,22 @@ the security-review freeze.
 Talking point: the 2012 consensus diary had already answered half of the
 clinician's wish list. The work was reading it, not inventing the questions.
 
+### 2026-11-09 (later) — Opening the repo to a first outside contributor
+Craig's 16-year-old son is joining as a contributor (the plan in
+docs/teen-collaboration.md, now real). Set up for fork-and-PR: CONTRIBUTING.md
+written for a beginner (synthetic data only, never real patient data; fork →
+branch → signed-off commit → PR; run it with `python3 -m http.server`),
+CONTRIBUTORS.md, a PR template with a checklist, and
+examples/synthetic-backup.json, three weeks of a made-up toddler in the app's
+own backup format, verified by restoring it in the app (21 nights, no time
+warnings). `main` is now protected: PRs required, no force pushes, no
+deletion, admins can still push. Four "good first issue" tasks opened, two of
+them teen-version groundwork: teen wording for the entry form and a
+synthetic teen diary with a late body clock. Open question parked for a
+lawyer: the DCO covers the noncommercial license, not the commercial one.
+Talking point: the first contributor's onboarding doc leads with "made-up
+data only" — in a medical app, that's the rule that matters most.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26

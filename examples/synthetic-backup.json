@@ -1,0 +1,434 @@
+{
+ "format": "peds-sleep-diary-backup",
+ "version": 2,
+ "exported": "2026-11-09T12:00:00.000Z",
+ "activeChild": "synthetic-toddler",
+ "_comment": "SYNTHETIC TEST DATA. Invented for testing; no real child. Load with Share > Restore from file.",
+ "children": {
+  "synthetic-toddler": {
+   "settings": {
+    "initials": "TEST",
+    "ageBand": "toddler"
+   },
+   "entries": {
+    "2026-10-05": {
+     "date": "2026-10-05",
+     "lightsOut": "19:35",
+     "onset": "20:15",
+     "wake": "06:05",
+     "outOfBed": "06:25",
+     "awakenings": [
+      {
+       "time": "02:25",
+       "dur": 20,
+       "help": "room"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:15",
+       "dur": 70,
+       "woke": "14:25"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-06": {
+     "date": "2026-10-06",
+     "lightsOut": "19:55",
+     "onset": "20:35",
+     "wake": "06:05",
+     "outOfBed": "06:25",
+     "awakenings": [
+      {
+       "time": "02:20",
+       "dur": 25,
+       "help": "none"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:05",
+       "dur": 85,
+       "woke": "14:30"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-07": {
+     "date": "2026-10-07",
+     "lightsOut": "19:40",
+     "onset": "20:05",
+     "wake": "06:30",
+     "outOfBed": "06:55",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:10",
+       "dur": 85,
+       "woke": "14:35"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-08": {
+     "date": "2026-10-08",
+     "lightsOut": "19:45",
+     "onset": "20:10",
+     "wake": "06:30",
+     "outOfBed": "06:50",
+     "awakenings": [
+      {
+       "time": "00:05",
+       "dur": 15,
+       "help": "room"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:20",
+       "dur": 70,
+       "woke": "14:30"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-09": {
+     "date": "2026-10-09",
+     "lightsOut": "20:25",
+     "onset": "20:40",
+     "wake": "06:25",
+     "outOfBed": "06:50",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:00",
+       "dur": 60,
+       "woke": "14:00"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-10": {
+     "date": "2026-10-10",
+     "lightsOut": "20:00",
+     "onset": "20:25",
+     "wake": "06:30",
+     "outOfBed": "06:45",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:05",
+       "dur": 55,
+       "woke": "14:00"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-11": {
+     "date": "2026-10-11",
+     "lightsOut": "19:45",
+     "onset": "20:05",
+     "wake": "06:10",
+     "outOfBed": "06:30",
+     "awakenings": [
+      {
+       "time": "01:40",
+       "dur": 25,
+       "help": "room"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:05",
+       "dur": 85,
+       "woke": "14:30"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-12": {
+     "date": "2026-10-12",
+     "lightsOut": "19:55",
+     "onset": "20:20",
+     "wake": "06:15",
+     "outOfBed": "06:25",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:00",
+       "dur": 80,
+       "woke": "14:20"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-13": {
+     "date": "2026-10-13",
+     "lightsOut": "19:55",
+     "onset": "20:15",
+     "wake": "06:10",
+     "outOfBed": "06:20",
+     "awakenings": [
+      {
+       "time": "02:40",
+       "dur": 30,
+       "help": "none"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "12:50",
+       "dur": 65,
+       "woke": "13:55"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-14": {
+     "date": "2026-10-14",
+     "lightsOut": "19:35",
+     "onset": "21:00",
+     "wake": "06:05",
+     "outOfBed": "06:15",
+     "awakenings": [
+      {
+       "time": "03:40",
+       "dur": 20,
+       "help": "room"
+      }
+     ],
+     "naps": [],
+     "notes": "Skipped nap at daycare; long bedtime battle"
+    },
+    "2026-10-15": {
+     "date": "2026-10-15",
+     "lightsOut": "20:05",
+     "onset": "20:45",
+     "wake": "06:30",
+     "outOfBed": "06:35",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:15",
+       "dur": 60,
+       "woke": "14:15"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-16": {
+     "date": "2026-10-16",
+     "lightsOut": "20:05",
+     "onset": "20:20",
+     "wake": "06:15",
+     "outOfBed": "06:35",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "13:15",
+       "dur": 70,
+       "woke": "14:25"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-17": {
+     "date": "2026-10-17",
+     "lightsOut": "20:05",
+     "onset": "20:50",
+     "wake": "06:25",
+     "outOfBed": "06:50",
+     "awakenings": [
+      {
+       "time": "03:05",
+       "dur": 10,
+       "help": "room"
+      },
+      {
+       "time": "04:20",
+       "dur": 25,
+       "help": "room"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:20",
+       "dur": 50,
+       "woke": "14:10"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-18": {
+     "date": "2026-10-18",
+     "lightsOut": "19:40",
+     "onset": "20:25",
+     "wake": "06:20",
+     "outOfBed": "06:35",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "12:55",
+       "dur": 60,
+       "woke": "13:55"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-19": {
+     "date": "2026-10-19",
+     "lightsOut": "19:35",
+     "onset": "20:15",
+     "wake": "06:25",
+     "outOfBed": "06:50",
+     "awakenings": [],
+     "naps": [
+      {
+       "asleep": "12:45",
+       "dur": 55,
+       "woke": "13:40"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-20": {
+     "date": "2026-10-20",
+     "lightsOut": "19:40",
+     "onset": "20:15",
+     "wake": "06:30",
+     "outOfBed": "06:40",
+     "awakenings": [
+      {
+       "time": "03:00",
+       "dur": 30,
+       "help": "bed"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:15",
+       "dur": 65,
+       "woke": "14:20"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-21": {
+     "date": "2026-10-21",
+     "lightsOut": "19:55",
+     "onset": "20:40",
+     "wake": "06:10",
+     "outOfBed": "06:25",
+     "awakenings": [
+      {
+       "time": "01:05",
+       "dur": 30,
+       "help": "room"
+      }
+     ],
+     "naps": [],
+     "notes": "Car nap only, 10 min"
+    },
+    "2026-10-22": {
+     "date": "2026-10-22",
+     "lightsOut": "19:55",
+     "onset": "20:20",
+     "wake": "06:25",
+     "outOfBed": "06:50",
+     "awakenings": [
+      {
+       "time": "00:20",
+       "dur": 15,
+       "help": "bed"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:10",
+       "dur": 85,
+       "woke": "14:35"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-23": {
+     "date": "2026-10-23",
+     "lightsOut": "20:05",
+     "onset": "20:40",
+     "wake": "06:20",
+     "outOfBed": "06:30",
+     "awakenings": [
+      {
+       "time": "01:45",
+       "dur": 30,
+       "help": "bed"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "12:50",
+       "dur": 70,
+       "woke": "14:00"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-24": {
+     "date": "2026-10-24",
+     "lightsOut": "20:20",
+     "onset": "20:50",
+     "wake": "06:35",
+     "outOfBed": "06:45",
+     "awakenings": [
+      {
+       "time": "02:30",
+       "dur": 15,
+       "help": "fed"
+      },
+      {
+       "time": "03:25",
+       "dur": 20,
+       "help": "room"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "12:55",
+       "dur": 80,
+       "woke": "14:15"
+      }
+     ],
+     "notes": ""
+    },
+    "2026-10-25": {
+     "date": "2026-10-25",
+     "lightsOut": "19:40",
+     "onset": "20:15",
+     "wake": "06:10",
+     "outOfBed": "06:15",
+     "awakenings": [
+      {
+       "time": "02:35",
+       "dur": 30,
+       "help": "bed"
+      }
+     ],
+     "naps": [
+      {
+       "asleep": "13:10",
+       "dur": 90,
+       "woke": "14:40"
+      }
+     ],
+     "notes": ""
+    }
+   },
+   "plan": null,
+   "planHistory": [],
+   "research": {
+    "participantCode": ""
+   }
+  }
+ }
+}
