@@ -341,7 +341,8 @@ pre.export{
       var date = dAgo(demo.length - i);
       entries[date] = { date:date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
         awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "",
-        quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50) };
+        quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50), napAsked:true };
+      if (!d.naps.length) entries[date].noNap = true;
     });
     /* A made-up teenager (pick "Teen" under Setup > Child): the teen age band
        adds "Got into bed" and the second efficiency number. ib = got into
@@ -359,7 +360,8 @@ pre.export{
     teen.forEach(function(d,i){
       var date = dAgo(teen.length - i);
       teenEntries[date] = { date:date, intoBed:d.ib, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
-        awakenings:d.aw, naps:[], notes: i===4 ? "Friday night; phone in bed" : "",
+        awakenings:d.aw, naps: i===1 ? [{asleep:"16:20",dur:50,woke:"17:10"}] : [], napAsked:true, noNap: i!==1 && i!==5,
+        notes: i===4 ? "Friday night; phone in bed" : "",
         quality:d.q, loggedAt:loggedOn(date, i===3 ? 2 : 0, i>=4 ? 11 : 7, 5) };
     });
     var state = { version:2, activeChild:"c1",
@@ -603,6 +605,7 @@ function clock(mfnVal){                                                         
 }
 function clockFromHM(t){ return clock(mfn(t)); }
 function dur(mins){
+  if (isNaN(mins)) return "—";
   mins = Math.round(mins);
   if (mins < 0) mins = 0;
   const h = Math.floor(mins/60), m = mins%60;
@@ -726,6 +729,11 @@ function loggingStats(entries){
            nextDay: next.length, nextMorning: next.filter(i=> i.beforeNoon).length,
            later: stamped.filter(i=> i.lag > 1).length };
 }
+function napLine(s){
+  if (!s.naps.asked) return "";
+  return "Naps answered on "+s.naps.known+" of "+s.n+" days"
+       + (s.naps.unknown ? "; nap and 24-hour averages use those days only." : ".");
+}
 function loggingLine(st){
   if (!st) return "";
   let t = st.nextDay+" of "+st.stamped+" night"+(st.stamped===1?"":"s")+" logged the next day"
@@ -770,6 +778,49 @@ function plausibilityNotes(e){
   return notes;
 }
 
+/* ---------- the nap question (ROADMAP 1.9) ----------
+   An empty nap list used to mean both "no nap" and "forgot to log it".
+   Children who usually nap are now offered one-tap answers in the entry
+   form, and the entry remembers that it was asked (napAsked) and whether the
+   parent said "no nap" (noNap). Status per entry:
+     "nap"     — at least one nap recorded
+     "none"    — parent tapped "No nap"
+     "unknown" — asked, not answered: left out of the nap averages
+     "notasked"— not asked (older entries, non-nappers): counts as zero, as before */
+const NAP_ASK_BANDS = { newborn:1, infant:1, toddler:1, preschool:1, teen:1, youngadult:1 };  // not school age
+const NAP_LOOKBACK = 7, NAP_MIN_DAYS = 3;
+function napStatus(e){
+  if ((e.naps||[]).some(n=> n.asleep && n.woke)) return "nap";
+  if (e.noNap) return "none";
+  return e.napAsked ? "unknown" : "notasked";
+}
+/* Should the form ask, and what is this child's usual nap? Learned from the
+   last 7 logged days before dateIso (a nap on 3 or more = "usually naps");
+   until there are 7, the age group decides. Usual naps = the median start
+   and length of the 1st, 2nd, … nap of the day across those nap days. */
+function napHabit(dateIso){
+  const prior = sortedEntries().filter(x=> x.date < dateIso).slice(-NAP_LOOKBACK);
+  const napDays = prior.map(x=> (x.naps||[]).filter(n=> n.asleep && n.woke && Number(napDur(n)) > 0)
+                                  .sort((a,b)=> hm(a.asleep) - hm(b.asleep)))
+                       .filter(list=> list.length);
+  const learned = napDays.length >= NAP_MIN_DAYS;
+  const ask = learned || (prior.length < NAP_LOOKBACK && !!NAP_ASK_BANDS[cur().settings.ageBand]);
+  const med = a => { const v = a.slice().sort((x,y)=>x-y), m = Math.floor(v.length/2); return v.length%2 ? v[m] : (v[m-1]+v[m])/2; };
+  const usual = [];
+  if (learned){
+    const perDay = Math.max(1, Math.round(med(napDays.map(l=> l.length))));
+    for (let k=0; k<perDay; k++){
+      const kth = napDays.filter(l=> l.length > k).map(l=> l[k]);
+      if (!kth.length) break;
+      const start = Math.round(med(kth.map(n=> hm(n.asleep)))/5)*5;
+      const mins = Math.round(med(kth.map(n=> Number(napDur(n))))/5)*5;
+      const asleep = hmAdd("00:00", start);
+      usual.push({ asleep, dur: mins, woke: hmAdd(asleep, mins) });
+    }
+  }
+  return { ask, usual };
+}
+
 function sortedEntries(){
   return Object.values(cur().entries).sort((a,b)=> a.date < b.date ? -1 : 1);
 }
@@ -782,6 +833,8 @@ function computeSummary(){
   const seBed = rows.filter(r=> r.b && !isNaN(r.b.seBed)).map(r=> r.b.seBed);
   const rated = rows.filter(r=> r.e.quality >= 1 && r.e.quality <= 5);
   const g = k => rows.map(r=>r.c[k]);
+  const napKnown = rows.filter(r=> napStatus(r.e) !== "unknown");
+  const gk = k => napKnown.map(r=>r.c[k]);
   const s = {
     n: rows.length,
     first: rows[0].e.date, last: rows[rows.length-1].e.date,
@@ -797,9 +850,13 @@ function computeSummary(){
     waso:{ m:mean(g("waso")) },
     nAw:{ m:mean(g("nAw")), tot: g("nAw").reduce((a,b)=>a+b,0) },
     nHelp:{ m:mean(g("nHelp")), tot: g("nHelp").reduce((a,b)=>a+b,0) },
-    napSleep:{ m:mean(g("napSleep")) },
-    nNaps:{ m:mean(g("nNaps")) },
-    tst24:{ m:mean(g("tst24")) },
+    /* days where the nap question went unanswered are left out of the nap
+       and 24-hour averages (for older diaries napKnown is every row) */
+    napSleep:{ m:mean(gk("napSleep")) },
+    nNaps:{ m:mean(gk("nNaps")) },
+    tst24:{ m:mean(gk("tst24")) },
+    naps:{ asked: rows.filter(r=> r.e.napAsked).length, known: napKnown.length,
+           unknown: rows.length - napKnown.length },
     /* Phase 1 additions — all optional, absent data leaves them empty */
     teen: isTeenBand(),
     seBed:{ m:mean(seBed), n:seBed.length },
@@ -1449,15 +1506,39 @@ function entryForm(existing, presetDate){
       endHint
     );
   }
+  /* one-tap answers for a child who usually naps: the usual nap(s), or
+     "No nap". Nothing is filled in until tapped, and leaving it alone never
+     blocks saving — the day is then stored as "not recorded", not zero. An
+     entry made before this question existed is not re-asked on edit. */
+  const habit = napHabit(e.date);
+  const napAsk = existing ? !!existing.napAsked : habit.ask;
+  const usualLeft = habit.usual.slice();
+  const napChips = el("div",{class:"chips"});
   function redrawNaps(){
     napBox.innerHTML="";
     e.naps.forEach((n,i)=> napBox.append(napRow(n,i)));
+    napChips.innerHTML = "";
+    if (!napAsk) return;
+    if (e.noNap && !e.naps.length){
+      napChips.append(el("span",{class:"hint",style:"margin:0;align-self:center"},"No nap that day."),
+        el("button",{type:"button",onclick:()=>{ delete e.noNap; redrawNaps(); }},"Undo"));
+      return;
+    }
+    usualLeft.forEach((u,ui)=>{
+      napChips.append(el("button",{type:"button",onclick:()=>{
+        e.naps.push({ asleep:u.asleep, dur:u.dur, woke:u.woke });
+        usualLeft.splice(ui,1); delete e.noNap; redrawNaps(); refresh();
+      }},"+ Usual nap ("+clockFromHM(u.asleep)+", "+u.dur+" min)"));
+    });
+    if (!e.naps.length)
+      napChips.append(el("button",{type:"button",onclick:()=>{ e.noNap = true; redrawNaps(); }},"No nap that day"));
   }
   redrawNaps();
   card.append(
     el("label",{style:"margin-top:14px"},"Naps that day (before this bedtime)"),
-    napBox,
-    el("button",{class:"btn-ghost",onclick:()=>{ e.naps.push({asleep:"",dur:"",woke:""}); redrawNaps(); }},"+ Add a nap")
+    napBox, napChips,
+    el("button",{class:"btn-ghost",onclick:()=>{ e.naps.push({asleep:"",dur:"",woke:""}); delete e.noNap; redrawNaps(); }},
+      napAsk && habit.usual.length ? "+ Add a different nap" : "+ Add a nap")
   );
 
   /* sleep quality — one optional tap (CSD Core #8 anchors, faces as in
@@ -1506,6 +1587,8 @@ function entryForm(existing, presetDate){
     e.naps = e.naps.filter(n=>n.asleep && n.woke && Number(napDur(n)) > 0);
     if (existing && existing.date !== e.date){ delete cur().entries[existing.date]; syncMarkDirty(existing.date); }
     if (!teenBand && !(existing && existing.intoBed)) delete e.intoBed;
+    if (napAsk) e.napAsked = true; else delete e.napAsked;
+    if (e.naps.length) delete e.noNap;
     /* silent logging time: set once on the first save, never changed by an
        edit (an edit is stamped separately) — the report uses it to say how
        many nights were logged the next day */
@@ -1830,6 +1913,8 @@ function renderSummary(){
   if (s.quality.n)
     card.append(el("div",{class:"hint",style:"margin-top:4px"},
       el("b",null,(reporter()==="teen" ? "Sleep quality (self-rated): " : "Sleep quality (parent-rated): ")), qualityLine(s)));
+  if (s.naps.asked)
+    card.append(el("div",{class:"hint",style:"margin-top:4px"}, el("b",null,"Naps: "), napLine(s)));
   if (s.logging)
     card.append(el("div",{class:"hint",style:"margin-top:4px"}, el("b",null,"Logging: "), loggingLine(s.logging)));
   v.append(card);
@@ -1888,7 +1973,7 @@ function perNightTable(s){
       teen ? el("td",null, r.b ? pct(r.b.seBed) : "—") : null,
       el("td",null,r.c.waso? dur(r.c.waso):"0"),
       el("td",null,String(r.c.nAw)), el("td",null,String(r.c.nHelp)),
-      el("td",null, r.c.nNaps? r.c.nNaps+" ("+dur(r.c.napSleep)+")" : "0"),
+      el("td",null, r.c.nNaps? r.c.nNaps+" ("+dur(r.c.napSleep)+")" : (napStatus(r.e)==="unknown" ? "—" : "0")),
       q ? el("td",null, r.e.quality ? QUALITY_LABELS[r.e.quality-1] : "—") : null
     ));
   });
@@ -1922,7 +2007,7 @@ function buildTextReport(){
   L.push("  WASO per night:    "+dur(s.waso.m));
   L.push("  Awakenings/night:  "+s.nAw.m.toFixed(1)+"  ("+s.nAw.tot+" total)");
   L.push("  Parent help/night: "+s.nHelp.m.toFixed(1)+"  ("+s.nHelp.tot+" total)");
-  L.push("  Nap sleep per day: "+dur(s.napSleep.m)+"  ("+s.nNaps.m.toFixed(1)+" naps/day)");
+  L.push("  Nap sleep per day: "+dur(s.napSleep.m)+(isNaN(s.nNaps.m) ? "" : "  ("+s.nNaps.m.toFixed(1)+" naps/day)"));
   L.push("  24-h total sleep:  "+dur(s.tst24.m));
   if (sri!=null) L.push("  Sleep Regularity Index: "+sri.toFixed(0)+" / 100");
   if (s.quality.n) L.push("  Sleep quality ("+(reporter()==="teen"?"self":"parent")+"-rated): "+qualityLine(s));
@@ -1931,10 +2016,11 @@ function buildTextReport(){
   weeklySE(s).forEach(k=> L.push("  Week "+k.w+" ("+fmtDateShort(k.from)+"–"+fmtDateShort(k.to)+", "+k.n+" night"+(k.n===1?"":"s")+"): "
     + (s.teen ? "from lights out "+pct(k.se)+", from getting into bed "+pct(k.seBed) : pct(k.se))));
   L.push("  "+SE_CAVEAT);
-  if (s.logging){
+  if (s.logging || s.naps.asked){
     L.push("");
     L.push("DATA QUALITY");
-    L.push("  "+loggingLine(s.logging));
+    if (s.logging) L.push("  "+loggingLine(s.logging));
+    if (s.naps.asked) L.push("  "+napLine(s));
   }
   const cmp = sleepNeedCompare(s.tst24.m);
   if (cmp){
@@ -1964,7 +2050,7 @@ function buildTextReport(){
     L.push("  "+pad(fmtDateShort(r.e.date),7)+pad(clock(c.lo),10)+pad(clock(c.on),8)+pad(clock(c.wk),7)
       +pad(clock(c.ob),8)+pad(dur(c.tst),7)+pad(isNaN(c.se)?"—":c.se.toFixed(0)+"%",5)
       +pad(c.waso? c.waso+"m":"0",5)+pad(c.nAw,6)+pad(c.nHelp,5)
-      +(c.nNaps? c.nNaps+" ("+dur(c.napSleep)+")":"0")
+      +(c.nNaps? c.nNaps+" ("+dur(c.napSleep)+")": (napStatus(r.e)==="unknown" ? "not recorded" : "0"))
       /* optional trailing details, only when recorded */
       +(r.b ? "  | into bed "+clock(r.b.ib)+", SE from getting into bed "+pct(r.b.seBed) : "")
       +(r.e.quality ? "  | quality: "+QUALITY_LABELS[r.e.quality-1] : ""));
@@ -1986,14 +2072,15 @@ function phase1Cols(e, c){
            b && !isNaN(b.tibBed) ? Math.round(b.tibBed) : "",
            b && !isNaN(b.seBed) ? b.seBed.toFixed(1) : "",
            (e.quality >= 1 && e.quality <= 5) ? e.quality : "",
-           li ? li.local : "", li ? li.lag : "", reporter() ];
+           li ? li.local : "", li ? li.lag : "", reporter(),
+           ({ nap:"nap", none:"no_nap", unknown:"not_recorded", notasked:"not_asked" })[napStatus(e)] ];
 }
 function buildCSV(){
   const rows = sortedEntries();
   const head = ["child_initials","date","lights_out","sleep_onset","final_wake","out_of_bed",
     "sol_min","tst_min","tib_min","se_pct","waso_min","n_awakenings","n_parent_interventions",
     "awakenings_detail","n_naps","nap_sleep_min","naps_detail",
-    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","notes"];
+    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status","notes"];
   const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
   const out = [head.join(",")];
   const who = cur().settings.initials || "";
@@ -2022,7 +2109,7 @@ function buildResearchCSV(){
   const head = ["record_id","redcap_repeat_instrument","redcap_repeat_instance","night_date",
     "lights_out","sleep_onset","final_wake","out_of_bed","sol_min","tst_min","tib_min","se_pct",
     "waso_min","n_awakenings","n_parent_interventions","awakenings_detail","n_naps","nap_sleep_min","naps_detail",
-    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by"];
+    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status"];
   const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
   const out = [head.join(",")];
   if (!rows.length) return out.join("\n");
@@ -2070,13 +2157,14 @@ function buildPrintReport(){
       el("td",null,dur(s.waso.m)),
       el("td",null,s.nAw.m.toFixed(1)),
       el("td",null,s.nHelp.m.toFixed(1)),
-      el("td",null,s.nNaps.m.toFixed(1)+" ("+dur(s.napSleep.m)+")"),
+      el("td",null,isNaN(s.nNaps.m) ? "—" : s.nNaps.m.toFixed(1)+" ("+dur(s.napSleep.m)+")"),
       el("td",null,dur(s.tst24.m)),
       el("td",null,sri==null?"—":sri.toFixed(0))
     ));
   box.append(el("h2",null,"Averages"), stats);
-  if (s.logging)
-    box.append(el("div",{style:"margin-top:6px"}, el("b",null,"Data quality: "), loggingLine(s.logging)));
+  if (s.logging || s.naps.asked)
+    box.append(el("div",{style:"margin-top:6px"}, el("b",null,"Data quality: "),
+      [s.logging ? loggingLine(s.logging) : "", napLine(s)].filter(Boolean).join(" ")));
   if (s.quality.n)
     box.append(el("div",{style:"margin-top:2px"},
       el("b",null,"Sleep quality ("+(reporter()==="teen"?"self":"parent")+"-rated, CSD 5-point scale): "), qualityLine(s)));

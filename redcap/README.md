@@ -60,6 +60,10 @@ updated export; already-imported nights are simply refreshed.
   5 = Very good). `logged_at` (phone's local time) and `logged_lag_days`
   record when the night was first entered, so backfilled nights can be
   told apart; `reported_by` is the diary's parent/teen setting.
+- `nap_status` separates a day with no nap (`no_nap`) from a day where the
+  nap question was shown but not answered (`not_recorded`); leave the
+  latter out of nap and 24-hour totals. `not_asked` is a child who doesn't
+  usually nap, or a night entered before v2.5.0.
 - `screen_off`, `screen_in_bed`, `screen_after_lights_out` are reserved for
   the planned teen self-report version
   ([spec](../docs/specs/teen-screen-time.md)) and arrive blank from parent

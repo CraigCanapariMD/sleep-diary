@@ -25,6 +25,7 @@ sleep_quality,sleep_night,,radio,Sleep quality,"1, Very poor | 2, Poor | 3, Fair
 logged_at,sleep_night,,text,When the night was first logged,,"Phone's local time; set once on the first save and not changed by later edits. Blank for nights entered before v2.5.0",datetime_ymd,,,,,,,,,,
 logged_lag_days,sleep_night,,text,Days from night date to logging,,"Computed by the app; 1 = logged the day after the night began (the morning the child woke)",integer,0,3650,,,,,,,,
 reported_by,sleep_night,,radio,Who fills in the diary,"parent, A parent or caregiver | teen, The teen (their own sleep)","Set once per diary in the app's Setup (default follows the age group); the same value is repeated on every exported night",,,,,,,,,,,
+nap_status,sleep_night,,radio,Nap answer for that day,"nap, At least one nap recorded | no_nap, Parent answered: no nap | not_recorded, Asked but not answered (nap count unknown) | not_asked, Not asked (child does not usually nap, or night entered before v2.5.0; treat as no nap)","Children who usually nap are offered one-tap nap answers; not_recorded days should be excluded from nap and 24-hour totals",,,,,,,,,,,
 screen_off,sleep_night,,text,Last screen use ended,,"Teen self-report version only; blank in parent diaries",time,,,,,,,,,,
 screen_in_bed,sleep_night,,yesno,Screens used in bed,,"Teen self-report version only; blank in parent diaries",,,,,,,,,,,
 screen_after_lights_out,sleep_night,,yesno,Screen use after lights out,,"Teen self-report version only; derived, blank in parent diaries",,,,,,,,,,,

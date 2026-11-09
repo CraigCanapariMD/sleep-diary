@@ -418,6 +418,29 @@ and possibly mistimed in a true phase delay).
 Talking point: the form didn't get a single new pop-up. The check is a
 picture of the night, drawn while you type.
 
+### 2026-11-09 (night) — The nap question
+Craig's point: an empty nap list meant two different things, "skipped the
+nap" and "forgot to log it", and the usual fix (a reminder) is exactly the
+nagging the app avoids. Resolution: children who usually nap see one-tap
+answers in the nap section, their usual nap ("+ Usual nap (1:05 PM, 70
+min)") or "No nap that day". Nothing is filled in until tapped. "Usually
+naps" is learned from the diary (a nap on 3 of the last 7 logged days; the
+usual nap is the median start and length); until there is a week of data
+the age group decides. Craig's correction to the first draft: teenagers do
+nap, so they are asked by default and school-age children are not. An
+unanswered day is stored as "not recorded" rather than zero (`napAsked`
+without `noNap`), left out of the nap and 24-hour averages, and counted in
+the report ("Naps answered on 8 of 9 days"). Entries from before the
+question existed still count as zero and are not re-asked on edit. New
+export column `nap_status`. Verified in the browser on the demo toddler
+(usual-nap chip adds the nap and draws it in the preview; "No nap" saves
+as a real zero; an untouched section saves as not recorded and drops out
+of the nap mean) and on fresh school-age, toddler and unset-age diaries.
+Still CACHE_VERSION 2.5.0 (same unreleased PR). Not changed: a morning nap
+is still drawn at the right-hand end of the previous day's chart row.
+Talking point: the fix for missing data wasn't a reminder. It was letting
+"nothing happened" be an answer.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26

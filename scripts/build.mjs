@@ -56,7 +56,8 @@ const seed = `<script>
       var date = dAgo(demo.length - i);
       entries[date] = { date:date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
         awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "",
-        quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50) };
+        quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50), napAsked:true };
+      if (!d.naps.length) entries[date].noNap = true;
     });
     /* A made-up teenager (pick "Teen" under Setup > Child): the teen age band
        adds "Got into bed" and the second efficiency number. ib = got into
@@ -74,7 +75,8 @@ const seed = `<script>
     teen.forEach(function(d,i){
       var date = dAgo(teen.length - i);
       teenEntries[date] = { date:date, intoBed:d.ib, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
-        awakenings:d.aw, naps:[], notes: i===4 ? "Friday night; phone in bed" : "",
+        awakenings:d.aw, naps: i===1 ? [{asleep:"16:20",dur:50,woke:"17:10"}] : [], napAsked:true, noNap: i!==1 && i!==5,
+        notes: i===4 ? "Friday night; phone in bed" : "",
         quality:d.q, loggedAt:loggedOn(date, i===3 ? 2 : 0, i>=4 ? 11 : 7, 5) };
     });
     var state = { version:2, activeChild:"c1",
