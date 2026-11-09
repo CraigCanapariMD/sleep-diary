@@ -441,6 +441,31 @@ is still drawn at the right-hand end of the previous day's chart row.
 Talking point: the fix for missing data wasn't a reminder. It was letting
 "nothing happened" be an answer.
 
+### 2026-11-09 (late) — Morning naps land on the right row
+A bug older than today, found while describing how naps work: each chart
+row runs noon to noon, but naps are stored with the calendar day they
+happened on, so a 9:30 AM nap was drawn at the right-hand end of its own
+day's row, which is the *next* morning. One day late on the chart and in
+the regularity index, and mostly for infants, who are the ones with
+morning naps. The stored data was right, so the fix is in the drawing:
+`napPieces()` puts a before-noon nap at the end of the previous day's row,
+splits a nap that runs through noon across the two rows, and gives a
+morning nap its own naps-only row when the day before has no entry. The
+regularity index uses the same placement. One change inside
+`computeNight()`, flagged because Phase 1 otherwise left it alone: a nap's
+length is now its clock length, so a nap from 11:30 AM for 90 minutes
+counts whole instead of raising "split it at noon" (the save-time warning
+remains for a nap that ends before it starts). The entry form's preview is
+one night, so it says in a line that before-noon naps are on the Chart tab,
+and two new soft notes catch a nap typed as 1:00 AM and a morning nap that
+starts before that morning's out-of-bed time. Verified in the browser: the
+synthetic toddler (afternoon naps only) is unchanged (21 rows, 19 naps, SE
+89.7%, SRI 86.7); a made-up infant shows morning naps after the right
+night, the noon-crossing nap in two pieces counted as 90 minutes, and a
+naps-only first row.
+Talking point: the bug was found by explaining the feature out loud, not by
+testing it.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26

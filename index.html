@@ -589,6 +589,26 @@ const HELP_LABELS = {
   none:"No help needed", room:"Comforted in room", fed:"Fed",
   bed:"Brought to parents' bed", other:"Other"
 };
+/* Where a nap falls on the diary's noon-to-noon rows. Naps are stored with
+   the calendar day they happened on (entry D), but row D runs from noon on
+   D to noon on D+1 — so a nap before noon belongs at the right-hand end of
+   the PREVIOUS day's row, and a nap that runs through noon is split across
+   the two rows. Returns [{prev, a, b}] in minutes-from-noon of the row;
+   prev:true = the row of the day before. A nap with no positive length, or
+   longer than 12 h (end typed before start), has no pieces. */
+function napLen(n){
+  if (!(n.asleep && n.woke)) return 0;
+  const len = hmElapsed(n.asleep, n.woke);
+  return (len > 0 && len <= 720) ? len : 0;
+}
+function napPieces(n){
+  const len = napLen(n), out = [];
+  if (!len) return out;
+  const p = hm(n.asleep) - 720, q = p + len;
+  if (p < 0) out.push({ prev:true,  a:p + 1440, b:Math.min(q, 0) + 1440 });
+  if (q > 0) out.push({ prev:false, a:Math.max(p, 0), b:q });
+  return out;
+}
 function computeNight(e){
   const out = { valid:false, warnings:[] };
   if (!(e.lightsOut && e.onset && e.wake && e.outOfBed)) return out;
@@ -618,9 +638,11 @@ function computeNight(e){
   let napSleep = 0, napInBed = 0, nNaps = 0;
   (e.naps||[]).forEach(n=>{
     if (n.asleep && n.woke){
-      const s = mfn(n.asleep), w = mfn(n.woke);
-      if (w > s){ napSleep += (w - s); nNaps++; }
-      else out.warnings.push("A nap ends at or before it starts — a nap that crosses noon belongs to two diary days; split it at noon.");
+      /* clock length, so a morning nap that runs past noon counts whole
+         (it used to need splitting at noon by hand) */
+      const len = napLen(n);
+      if (len){ napSleep += len; nNaps++; }
+      else out.warnings.push("A nap ends at or before it starts.");
     }
     if (n.inBed && n.out){
       const i = mfn(n.inBed), o = mfn(n.out);
@@ -689,7 +711,8 @@ function plausibilityNotes(e){
   const c = computeNight(e);
   const band = AGE_BANDS[cur().settings.ageBand];
   const baby = cur().settings.ageBand === "newborn" || cur().settings.ageBand === "infant";
-  const naps = (e.naps||[]).filter(n=> n.asleep && n.woke).map(n=>({ s:mfn(n.asleep), w:mfn(n.woke) })).filter(n=> n.w > n.s);
+  const naps = (e.naps||[]).filter(n=> napLen(n));
+  const pieces = naps.flatMap(napPieces);
   if (c.valid && !c.warnings.length){
     if (band){
       const h = c.tst24/60;
@@ -700,7 +723,7 @@ function plausibilityNotes(e){
     }
     if (c.sol > 180)
       notes.push("It took "+dur(c.sol)+" to fall asleep. Check lights out and fell asleep (AM/PM).");
-    if (naps.some(n=> n.w > c.lo && n.s < c.ob))
+    if (pieces.some(x=> !x.prev && x.b > c.lo && x.a < c.ob))
       notes.push("A nap overlaps the night's time in bed. Check the nap time (AM/PM).");
     if ((e.awakenings||[]).some(a=> a.time && (mfn(a.time) < c.on || mfn(a.time) >= c.wk)))
       notes.push("An awakening is outside the night's sleep (before falling asleep or after waking for the day), so it isn't counted. Check its time.");
@@ -710,7 +733,16 @@ function plausibilityNotes(e){
     else if (b && c.lo - b.ib > 240)
       notes.push("Got into bed is "+dur(c.lo - b.ib)+" before lights out. Check those two times.");
   }
-  if (naps.some(n=> n.w - n.s > (baby ? 300 : 240)))
+  /* a morning nap sits at the end of the night before — check it against
+     that night's time in bed when that night is in the diary */
+  const before = e.date ? cur().entries[addDays(e.date, -1)] : null;
+  const cb = before ? computeNight(before) : null;
+  if (cb && cb.valid && pieces.some(x=> x.prev && x.a < cb.ob && x.b > cb.lo))
+    notes.push("A morning nap starts before the child was out of bed that morning ("+clock(cb.ob)+"). Check the nap time.");
+  const small = naps.find(n=> hm(n.asleep) < 300);
+  if (small)
+    notes.push("A nap at "+clockFromHM(small.asleep)+" is in the middle of the night. Check AM/PM.");
+  if (naps.some(n=> napLen(n) > (baby ? 300 : 240)))
     notes.push("One nap is over "+(baby ? 5 : 4)+" hours long. Check the minutes.");
   return notes;
 }
@@ -822,14 +854,18 @@ function rasterFor(e){
   (e.awakenings||[]).forEach(a=>{
     if (a.time && a.dur){ const t = mfn(a.time); set(t, t + Number(a.dur), 0); }
   });
-  (e.naps||[]).forEach(n=>{
-    if (n.asleep && n.woke){ const s=mfn(n.asleep), w=mfn(n.woke); if (w>s) set(s,w,1); }
-  });
+  /* naps are laid onto the rasters in computeSRI(): a morning nap belongs
+     to the previous day's noon-to-noon vector */
   return v;
 }
 function computeSRI(){
   const byDate = {};
   sortedEntries().forEach(e=>{ const r = rasterFor(e); if (r) byDate[e.date] = r; });
+  sortedEntries().forEach(e=> (e.naps||[]).flatMap(napPieces).forEach(x=>{
+    const v = byDate[x.prev ? addDays(e.date, -1) : e.date];
+    if (!v) return;
+    for (let i=Math.max(0, Math.floor(x.a/EPOCH)); i<Math.min(NEP, Math.ceil(x.b/EPOCH)); i++) v[i] = 1;
+  }));
   let same=0, total=0;
   Object.keys(byDate).forEach(d=>{
     const nx = byDate[addDays(d,1)];
@@ -1334,6 +1370,9 @@ function entryForm(existing, presetDate){
     if (e.lightsOut || e.onset || e.wake || e.outOfBed){
       preview.append(el("div",{class:"hint",style:"margin:0 0 2px"},"This night, noon to noon:"),
                      buildChartSVG([e], {preview:true}));
+      if ((e.naps||[]).flatMap(napPieces).some(x=> x.prev))
+        preview.append(el("div",{class:"hint",style:"margin:2px 0 0"},
+          "Naps before noon happened before this row starts. The Chart tab shows them at the end of the night before."));
     }
     softBox.innerHTML = "";
     plausibilityNotes(e).forEach(t=> softBox.append(el("div",{class:"softnote"}, el("b",null,"Worth a look: "), t)));
@@ -1597,7 +1636,18 @@ function buildChartSVG(entries, opts){
   const pv = !!(opts && opts.preview);
   const LEFT = pv ? 14 : 58, RIGHT = pv ? 14 : 22, TOP = 26, ROWH = 26, GAP = 6;
   const W = pv ? 360 : 618, plotW = W - LEFT - RIGHT;
-  const H = TOP + entries.length*(ROWH+GAP) + 14;
+  /* nap pieces by the row they are drawn on; a morning nap whose previous
+     day has no entry gets a row of its own (naps only), so it is never lost */
+  const napsByRow = {};
+  entries.forEach(e=> (e.naps||[]).flatMap(napPieces).forEach(x=>{
+    if (pv && x.prev) return;                       // the preview is one night
+    const d = x.prev ? addDays(e.date, -1) : e.date;
+    (napsByRow[d] = napsByRow[d] || []).push(x);
+  }));
+  const have = new Set(entries.map(e=> e.date));
+  const rowsToDraw = entries.concat(Object.keys(napsByRow).filter(d=> !have.has(d)).map(d=>({ date:d, napOnly:true })))
+                            .sort((a,b)=> a.date < b.date ? -1 : (a.date > b.date ? 1 : 0));
+  const H = TOP + rowsToDraw.length*(ROWH+GAP) + 14;
   const x = m => LEFT + (m/1440)*plotW;
   const NS = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(NS,"svg");
@@ -1623,9 +1673,9 @@ function buildChartSVG(entries, opts){
   /* plan target ticks are appended after all rows so they stay visible on
      top of the sleep bars */
   const plan = cur().plan, tickEls = [];
-  entries.forEach((e,ri)=>{
+  rowsToDraw.forEach((e,ri)=>{
     const y = TOP + ri*(ROWH+GAP);
-    const c = computeNight(e);
+    const c = e.napOnly ? { valid:false } : computeNight(e);
     if (!pv) svg.append(S("text",{class:"c-dlabel",x:LEFT-8,y:y+ROWH/2+4,"text-anchor":"end","font-size":11}, fmtDateShort(e.date)));
     svg.append(S("rect",{class:"c-rowbg",x:LEFT,y:y,width:plotW,height:ROWH}));
     if (plan && e.date){
@@ -1636,12 +1686,10 @@ function buildChartSVG(entries, opts){
         tickEls.push(S("line",{class:"c-target",x1:tx,y1:y+1,x2:tx,y2:y+ROWH-1}));
       });
     }
-    if (!c.valid) return;
-    (e.naps||[]).forEach(n=>{
-      if (!(n.asleep && n.woke)) return;
-      const s=mfn(n.asleep), w=mfn(n.woke); if (w<=s) return;
-      svg.append(S("rect",{class:"c-nap",x:x(s),y:y+3,width:x(w)-x(s),height:ROWH-6,rx:2}));
+    (napsByRow[e.date]||[]).forEach(p=>{
+      svg.append(S("rect",{class:"c-nap",x:x(p.a),y:y+3,width:x(p.b)-x(p.a),height:ROWH-6,rx:2}));
     });
+    if (!c.valid) return;
     let segs = [[c.on, c.wk]];
     (e.awakenings||[]).forEach(a=>{
       if (!(a.time && a.dur)) return;
