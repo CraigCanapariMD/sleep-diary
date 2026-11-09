@@ -45,14 +45,41 @@ const seed = `<script>
       {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{asleep:"13:25",dur:50,woke:"14:15"}]},
       {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{asleep:"13:05",dur:80,woke:"14:25"}]}
     ];
+    /* loggedAt: the morning after the night began (k = how many days late) */
+    function loggedOn(date, late, hh, mm){
+      var p = date.split("-").map(Number);
+      return new Date(p[0], p[1]-1, p[2]+1+(late||0), hh, mm).toISOString();
+    }
+    var demoQ = [4,2,4,2,5,3,4];
     var entries = {};
     demo.forEach(function(d,i){
       var date = dAgo(demo.length - i);
       entries[date] = { date:date, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
-        awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "" };
+        awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "",
+        quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50) };
+    });
+    /* A made-up teenager (pick "Teen" under Setup > Child): the teen age band
+       adds "Got into bed" and the second efficiency number. ib = got into
+       bed; on most nights it is earlier than lights out. */
+    var teen = [
+      {ib:"22:15",lo:"23:10",on:"23:40",wk:"06:40",ob:"06:55",aw:[],q:3},
+      {ib:"22:30",lo:"23:30",on:"00:05",wk:"06:40",ob:"06:50",aw:[],q:2},
+      {ib:"22:45",lo:"22:45",on:"23:15",wk:"06:45",ob:"06:55",aw:[{time:"03:10",dur:15,help:"none"}],q:3},
+      {ib:"21:50",lo:"23:20",on:"23:55",wk:"06:40",ob:"06:55",aw:[],q:2},
+      {ib:"23:30",lo:"00:40",on:"01:05",wk:"09:50",ob:"10:30",aw:[],q:4},
+      {ib:"23:45",lo:"00:55",on:"01:15",wk:"10:20",ob:"11:05",aw:[],q:5},
+      {ib:"22:20",lo:"23:15",on:"00:10",wk:"06:40",ob:"06:55",aw:[{time:"04:30",dur:20,help:"none"}],q:2}
+    ];
+    var teenEntries = {};
+    teen.forEach(function(d,i){
+      var date = dAgo(teen.length - i);
+      teenEntries[date] = { date:date, intoBed:d.ib, lightsOut:d.lo, onset:d.on, wake:d.wk, outOfBed:d.ob,
+        awakenings:d.aw, naps:[], notes: i===4 ? "Friday night; phone in bed" : "",
+        quality:d.q, loggedAt:loggedOn(date, i===3 ? 2 : 0, i>=4 ? 11 : 7, 5) };
     });
     var state = { version:2, activeChild:"c1",
-      children:{ c1:{ settings:{ initials:"Demo", ageBand:"toddler" }, entries:entries } },
+      children:{ c1:{ settings:{ initials:"Demo", ageBand:"toddler", reporter:"parent" }, entries:entries },
+                 c2:{ settings:{ initials:"Teen", ageBand:"teen", reporter:"teen" }, entries:teenEntries } },
       meta:{ lastBackupAt:null }, drive:{ fileId:null, lastBackupAt:null } };
     localStorage.setItem("peds-sleep-diary-demo-v1", JSON.stringify(state));
   }catch(e){}

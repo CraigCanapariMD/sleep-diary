@@ -33,6 +33,9 @@ papers:
 
 ## Phase 1 — Data shape and data quality (no outside dependencies; start now)
 
+**Built 2026-11-09 in v2.5.0** (all of 1.1–1.8 and the D1 setting; see the
+BUILDLOG entry of that date for what was verified and what is left to decide).
+
 Everything here can be built without clinical sign-off. It settles what data
 gets stored before any family uses the app.
 

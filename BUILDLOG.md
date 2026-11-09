@@ -374,6 +374,43 @@ lawyer: the DCO covers the noncommercial license, not the commercial one.
 Talking point: the first contributor's onboarding doc leads with "made-up
 data only" — in a medical app, that's the rule that matters most.
 
+### 2026-11-09 (evening) — Roadmap Phase 1: data shape and data quality
+All eight Phase 1 items and the D1 setting, in one pass, before any family
+has a diary to migrate. New per-night fields, all optional: `intoBed`
+(Teenager and Young adult age bands only; it starts equal to lights out and
+follows it until the two are set apart), `quality` (1–5, the Consensus Sleep
+Diary's anchors, five tappable faces with the chosen label underneath),
+`loggedAt` (set silently on the first save, never changed by an edit) and
+`editedAt`. New per-diary setting: `settings.reporter` (parent or teen),
+asked once in Setup, defaulting from the age band; it picks the wording of
+the quality question and nothing else yet. `computeNight()` is untouched:
+the second efficiency number lives in a separate `bedMetrics()`, so a diary
+with none of the new fields produces the same numbers and the same table
+columns as before. The entry form now draws the night as one chart row that
+redraws on every keystroke, with "Worth a look" notes underneath (24-hour
+sleep more than 2 h outside the NSF "may be appropriate" band, a nap
+overlapping the night, a nap over 4 h, an awakening outside the sleep
+window, over 3 h to fall asleep). None of them block; the save-time confirm
+is still the only dialog. The plan checklist is reworded for the morning at
+render time, by exact match on the label text from plan.html's library, so
+a clinician's custom item is never rewritten beyond "tonight" → "last
+night", and reports keep the original wording. The report and Summary tab
+gained a sleep-timing graph (lights out and sleep onset in one panel, wake
+in another, plan targets dashed) and sleep efficiency by week with a
+one-line caveat from Dietch & Taylor. Both CSVs and the REDCap dictionary
+carry seven new columns. Verified in the browser: the synthetic toddler
+backup restores to the same 21 nights, SE 90%, same table columns; a new
+night stamps `loggedAt` and an edit leaves it alone; the demo's new made-up
+teenager shows SE 88% from lights out against 79% from getting into bed
+(checked one night by hand: 420 ÷ 520 min = 80.8%); an AM/PM slip empties
+the preview bar. CACHE_VERSION 2.4.0 → 2.5.0, demo and www rebuilt.
+Left for Craig: the 2-hour "far outside" margin, the past-tense wording of
+three checklist items ("Same wake time all 7 days", the camping-out chair
+move, morning bright light), and whether "next day" should mean "before
+noon" in the data-quality line.
+Talking point: the form didn't get a single new pop-up. The check is a
+picture of the night, drawn while you type.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26

@@ -80,6 +80,12 @@ Generate the QR code from your Pages URL with any QR generator.
   bed, awakenings (time, duration, whether a parent helped), naps, and notes.
   New entries prefill from the previous night. Missed nights are surfaced as
   one-tap catch-up chips. Replacing an already-recorded night asks first.
+  A one-row preview of the night redraws as the times change, with gentle
+  "worth a look" notes (never blocking) when something looks off for the
+  child's age. One optional tap rates the night on the Consensus Sleep
+  Diary's 5-point scale. Teenager and Young adult diaries also ask "Got into
+  bed" and report sleep efficiency two ways (from lights out, and from
+  getting into bed).
 - **Chart**: Mindell & Owens–style shaded log, one row per day, noon → noon.
 - **Summary**: mean ± SD lights-out / onset / wake / midsleep; sleep latency,
   night TST, TIB, sleep efficiency (TST÷TIB), WASO, awakenings and parental
@@ -136,7 +142,12 @@ Generate the QR code from your Pages URL with any QR generator.
 One row per night: `child_initials, date, lights_out, sleep_onset, final_wake,
 out_of_bed, sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
 n_parent_interventions, awakenings_detail, n_naps, nap_sleep_min, naps_detail,
-notes`. Times are 24-h clock; durations are minutes.
+got_into_bed, tib_from_bed_min, se_from_bed_pct, sleep_quality, logged_at,
+logged_lag_days, reported_by, notes`. Times are 24-h clock; durations are
+minutes. `se_pct` is sleep efficiency from lights out; the three "from bed"
+columns are filled only for the Teenager and Young adult age groups.
+`sleep_quality` is 1 (Very poor) to 5 (Very good); `logged_at` is when the
+night was first entered (the phone's local time).
 
 **For research**: the [`redcap/`](redcap/) folder has a ready-made REDCap
 data dictionary and coordinator guide, and the app's Share tab has a
