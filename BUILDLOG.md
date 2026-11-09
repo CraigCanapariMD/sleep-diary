@@ -388,7 +388,7 @@ the second efficiency number lives in a separate `bedMetrics()`, so a diary
 with none of the new fields produces the same numbers and the same table
 columns as before. The entry form now draws the night as one chart row that
 redraws on every keystroke, with "Worth a look" notes underneath (24-hour
-sleep more than 2 h outside the NSF "may be appropriate" band, a nap
+sleep more than 2 h outside the recommended range for the age, a nap
 overlapping the night, a nap over 4 h, an awakening outside the sleep
 window, over 3 h to fall asleep). None of them block; the save-time confirm
 is still the only dialog. The plan checklist is reworded for the morning at
@@ -404,10 +404,17 @@ night stamps `loggedAt` and an edit leaves it alone; the demo's new made-up
 teenager shows SE 88% from lights out against 79% from getting into bed
 (checked one night by hand: 420 ÷ 520 min = 80.8%); an AM/PM slip empties
 the preview bar. CACHE_VERSION 2.4.0 → 2.5.0, demo and www rebuilt.
-Left for Craig: the 2-hour "far outside" margin, the past-tense wording of
-three checklist items ("Same wake time all 7 days", the camping-out chair
-move, morning bright light), and whether "next day" should mean "before
-noon" in the data-quality line.
+Same day, Craig's call: the age comparison moved from the NSF ranges to the
+AASM consensus statement the AAP endorsed (Paruthi 2016). Teenager now
+starts at 13, which settles the roadmap's "what about 13-year-olds" note;
+newborns keep the NSF range because the AASM gives none under 4 months, and
+young adults use the adult statement's "7 or more hours". The comparison is
+now within / below / above; the "may be appropriate" band is gone.
+Craig also settled the checklist wording: "Woke up at the planned wake time";
+the chair item reads "Chair stayed in the same spot or moved farther away",
+because families set their own pace; and morning bright light came out of
+the phase-advance plan altogether (impossible on school days for most teens,
+and possibly mistimed in a true phase delay).
 Talking point: the form didn't get a single new pop-up. The check is a
 picture of the night, drawn while you type.
 

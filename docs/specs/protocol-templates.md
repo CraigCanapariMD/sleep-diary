@@ -60,6 +60,10 @@ is modest — the supervision framing below reflects that.)
   adds it — a melatonin *timing* item. The app displays the clinician's
   prescribed clock time only; it never computes or suggests a dose or time
   (same posture as the whole app: display, don't advise).
+  **Updated 2026-11-09 (Craig):** the morning bright-light item was removed
+  from the built-in checklist. It is impossible on school days for most
+  teens, and it can be mistimed in a teen who is truly phase delayed. A
+  clinician can still add it as a custom item.
 - **Chronotherapy (progressive phase delay)** — bedtime moves 2–3 h *later*
   each day, around the clock, until it reaches the target — then hard
   maintenance. Needs real machinery:

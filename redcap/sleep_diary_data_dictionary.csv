@@ -1,7 +1,7 @@
 "Variable / Field Name","Form Name","Section Header","Field Type","Field Label","Choices, Calculations, OR Slider Labels","Field Note","Text Validation Type OR Show Slider Number","Text Validation Min","Text Validation Max","Identifier?","Branching Logic (Show field only if...)","Required Field?","Custom Alignment","Question Number (surveys only)","Matrix Group Name","Matrix Ranking?","Field Annotation"
 record_id,enrollment,,text,Participant ID,,"Assigned by the study team; the family enters the same code in the diary app's Share tab",,,,,,,,,,,
 enroll_date,enrollment,,text,Enrollment date,,,date_ymd,,,,,,,,,,
-age_band,enrollment,,dropdown,Age group,"newborn, Newborn (0-3 months) | infant, Infant (4-11 months) | toddler, Toddler (1-2 years) | preschool, Preschooler (3-5 years) | school, School age (6-13 years) | teen, Teenager (14-17 years) | youngadult, Young adult (18-25 years)","As set in the diary app (NSF age bands, Hirshkowitz 2015 / Dzierzewski 2026)",,,,,,,,,,,
+age_band,enrollment,,dropdown,Age group,"newborn, Newborn (0-3 months) | infant, Infant (4-12 months) | toddler, Toddler (1-2 years) | preschool, Preschooler (3-5 years) | school, School age (6-12 years) | teen, Teenager (13-18 years) | youngadult, Young adult (19-25 years)","As set in the diary app (AASM age groups, Paruthi 2016; newborn from NSF 2015, young adult from the AASM/SRS adult statement)",,,,,,,,,,,
 night_date,sleep_night,,text,Night date,,"The evening the night began (matches the app's entry date)",date_ymd,,,,,y,,,,,
 lights_out,sleep_night,,text,Lights out / put in bed,,24-hour clock,time,,,,,,,,,,
 sleep_onset,sleep_night,,text,Fell asleep,,24-hour clock (caregiver's best estimate),time,,,,,,,,,,
@@ -18,7 +18,7 @@ awakenings_detail,sleep_night,,notes,Awakenings detail,,"Semicolon-separated: ti
 n_naps,sleep_night,,text,Number of naps that day,,,integer,0,20,,,,,,,,
 nap_sleep_min,sleep_night,,text,Nap sleep (min),,Computed by the app,integer,0,1440,,,,,,,,
 naps_detail,sleep_night,,notes,Naps detail,,"Semicolon-separated: asleep-woke (24-h times); nights recorded before v2.4.0 may read inBed/asleep-woke/outOfBed",,,,,,,,,,,
-got_into_bed,sleep_night,,text,Got into bed,,"24-hour clock. CSD Core item 1. Asked only in the Teenager and Young adult age groups; blank otherwise",time,,,,,,,,,,
+got_into_bed,sleep_night,,text,Got into bed,,"24-hour clock. CSD Core item 1. Asked only in the Teenager (13-18) and Young adult age groups; blank otherwise",time,,,,,,,,,,
 tib_from_bed_min,sleep_night,,text,Time in bed counted from getting into bed (min),,"Computed by the app (got into bed to out of bed); teen age groups only",integer,0,1440,,,,,,,,
 se_from_bed_pct,sleep_night,,text,Sleep efficiency from getting into bed (%),,"Computed by the app (TST / time from getting into bed to out of bed); teen age groups only",number,0,100,,,,,,,,
 sleep_quality,sleep_night,,radio,Sleep quality,"1, Very poor | 2, Poor | 3, Fair | 4, Good | 5, Very good","CSD Core item 8 anchors. Optional. Parent diaries ask ""How did your child sleep last night?""; teen diaries ask ""How would you rate the quality of your sleep?""",,,,,,,,,,,

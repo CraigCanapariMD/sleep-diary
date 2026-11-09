@@ -91,10 +91,10 @@ Generate the QR code from your Pages URL with any QR generator.
   night TST, TIB, sleep efficiency (TST÷TIB), WASO, awakenings and parental
   interventions per night, nap sleep, 24-h TST, Sleep Regularity Index
   (Phillips et al., 5-min epochs, consecutive days) — plus, if an age group is
-  set, a comparison of mean 24-h sleep against the National Sleep Foundation
-  recommended ranges (Hirshkowitz et al., *Sleep Health* 2015; re-certified by
-  Dzierzewski et al., *Sleep Health* 2026): within recommended / "may be
-  appropriate" / outside.
+  set, a comparison of mean 24-h sleep against the American Academy of Sleep
+  Medicine recommended ranges (Paruthi et al., *J Clin Sleep Med* 2016;
+  endorsed by the American Academy of Pediatrics): within, below or above
+  the recommended range.
 - **Share**: copy-paste text summary (MyChart), printable PDF report including
   the chart, CSV export, JSON backup file, optional Google Drive backup.
 - **Multiple children** per device, each with their own diary, initials, and
@@ -156,20 +156,25 @@ a REDCap-ready CSV (repeat instances keyed to study day; no initials, no
 notes). See [the REDCap spec](docs/specs/redcap-research-backend.md) for the
 planned direct-submission Phase B.
 
-## NSF sleep-duration reference values (hours, by age)
+## Recommended sleep duration reference values (hours per 24 h, by age)
 
-| Age group | Recommended | May be appropriate |
+| Age group | Recommended | Source |
 |---|---|---|
-| Newborn 0–3 mo | 14–17 | 11–13, 18–19 |
-| Infant 4–11 mo | 12–15 | 10–11, 16–18 |
-| Toddler 1–2 y | 11–14 | 9–10, 15–16 |
-| Preschool 3–5 y | 10–13 | 8–9, 14 |
-| School age 6–13 y | 9–11 | 7–8, 12 |
-| Teen 14–17 y | 8–10 | 7, 11 |
-| Young adult 18–25 y | 7–9 | 6, 10–11 |
+| Newborn 0–3 mo | 14–17 | NSF (the AASM makes no recommendation under 4 months) |
+| Infant 4–12 mo | 12–16 | AASM |
+| Toddler 1–2 y | 11–14 | AASM |
+| Preschool 3–5 y | 10–13 | AASM |
+| School age 6–12 y | 9–12 | AASM |
+| Teen 13–18 y | 8–10 | AASM |
+| Young adult 19–25 y | 7 or more | AASM/SRS adult statement |
 
-Source: Hirshkowitz M, et al. *Sleep Health* 2015;1(1):40–43; re-certified by
-Dzierzewski JM, et al. *Sleep Health* 2026 (10-year systematic review).
+Sources: Paruthi S, et al. Recommended Amount of Sleep for Pediatric
+Populations: A Consensus Statement of the American Academy of Sleep Medicine.
+*J Clin Sleep Med* 2016;12(6):785–786 (endorsed by the American Academy of
+Pediatrics). Newborns: Hirshkowitz M, et al. *Sleep Health* 2015;1(1):40–43,
+re-certified by Dzierzewski JM, et al. *Sleep Health* 2026 (10-year
+systematic review).
+Adults: Watson NF, et al. *Sleep* 2015;38(6):843–844.
 
 ## Brand
 
@@ -277,5 +282,5 @@ additional small-practice grant](LICENSE). In plain English:
 
 Versions published on or before 2026-07-11 were MIT-licensed and remain so.
 Chart format inspired by the Mindell & Owens pediatric sleep log. Not a
-medical device; provides no diagnosis or treatment advice. NSF reference
+medical device; provides no diagnosis or treatment advice. Sleep-duration reference
 values are cited in the app and above.

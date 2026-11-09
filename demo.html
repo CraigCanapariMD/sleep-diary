@@ -240,7 +240,6 @@ pre.export{
 .nsf-flag{border-radius:var(--brand-radius);padding:10px 12px;margin-top:10px;font-size:14.5px}
 .nsf-flag.ok{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);color:var(--color-text)}
 .nsf-flag.may{background:var(--brand-warning-tint);border:1px solid var(--brand-warning-border);color:var(--color-text)}
-.nsf-flag.out{background:var(--brand-warning-tint);border:2px solid var(--color-warning);color:var(--color-text)}
 .nsf-flag b{font-family:var(--brand-font-heading)}
 /* clinician plan strip (entry form) and plan cards */
 .plan-strip{background:var(--brand-accent-tint);border:1px solid var(--brand-accent-border);
@@ -524,38 +523,44 @@ window.addEventListener("pagehide", flushSave);
 document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden") flushSave(); });
 function cur(){ return state.children[state.activeChild]; }
 
-/* ---------- NSF sleep duration recommendations ----------
-   Hirshkowitz et al., Sleep Health 2015;1(1):40-43 — re-certified by
-   Dzierzewski et al., Sleep Health 2026 (10-year systematic review).
-   recLo/recHi = recommended hours; mayLo/mayHi = outer bounds of the
-   "may be appropriate" band. Outside mayLo–mayHi = "not recommended". */
+/* ---------- recommended sleep duration by age ----------
+   American Academy of Sleep Medicine consensus statement, endorsed by the
+   American Academy of Pediatrics: Paruthi S, et al. J Clin Sleep Med
+   2016;12(6):785-786. Hours per 24 h (naps included for the youngest).
+   Two groups fall outside that statement:
+     - 0-3 months: the AASM makes no recommendation, so the National Sleep
+       Foundation range is used (Hirshkowitz et al., Sleep Health 2015;
+       re-certified by Dzierzewski et al., Sleep Health 2026).
+     - over 18: the AASM/Sleep Research Society adult statement, "7 or more
+       hours" (Watson et al., Sleep 2015;38(6):843-844) — no upper bound.
+   recLo/recHi = recommended hours; recHi null = no upper bound. flagHi is
+   only for the entry form's plausibility note where recHi is null. */
+const CITE_AASM = "American Academy of Sleep Medicine consensus statement, endorsed by the American Academy of Pediatrics (Paruthi et al., J Clin Sleep Med 2016;12(6):785–786).";
 const AGE_BANDS = {
-  newborn:   { label:"Newborn (0–3 months)",       recLo:14, recHi:17, mayLo:11, mayHi:19 },
-  infant:    { label:"Infant (4–11 months)",        recLo:12, recHi:15, mayLo:10, mayHi:18 },
-  toddler:   { label:"Toddler (1–2 years)",         recLo:11, recHi:14, mayLo:9,  mayHi:16 },
-  preschool: { label:"Preschooler (3–5 years)",     recLo:10, recHi:13, mayLo:8,  mayHi:14 },
-  school:    { label:"School age (6–13 years)",     recLo:9,  recHi:11, mayLo:7,  mayHi:12 },
-  teen:      { label:"Teenager (14–17 years)",      recLo:8,  recHi:10, mayLo:7,  mayHi:11 },
-  youngadult:{ label:"Young adult (18–25 years)",   recLo:7,  recHi:9,  mayLo:6,  mayHi:11 }
+  newborn:   { label:"Newborn (0–3 months)",     recLo:14, recHi:17,
+               cite:"The AASM makes no recommendation under 4 months; this range is from the National Sleep Foundation (Hirshkowitz et al., Sleep Health 2015;1(1):40–43; re-certified Dzierzewski et al., Sleep Health 2026)." },
+  infant:    { label:"Infant (4–12 months)",      recLo:12, recHi:16, cite:CITE_AASM },
+  toddler:   { label:"Toddler (1–2 years)",       recLo:11, recHi:14, cite:CITE_AASM },
+  preschool: { label:"Preschooler (3–5 years)",   recLo:10, recHi:13, cite:CITE_AASM },
+  school:    { label:"School age (6–12 years)",   recLo:9,  recHi:12, cite:CITE_AASM },
+  teen:      { label:"Teenager (13–18 years)",    recLo:8,  recHi:10, cite:CITE_AASM },
+  youngadult:{ label:"Young adult (19–25 years)", recLo:7,  recHi:null, flagHi:9,
+               cite:"AASM and Sleep Research Society consensus statement for adults (Watson et al., Sleep 2015;38(6):843–844)." }
 };
-const NSF_CITATION = "National Sleep Foundation recommendations (Hirshkowitz et al., Sleep Health 2015; re-certified Dzierzewski et al., Sleep Health 2026).";
-/* Classify mean 24-h sleep (minutes) against the child's age band. */
-function nsfCompare(tst24min){
+/* Classify mean 24-h sleep (minutes) against the recommended range for the
+   child's age group: within, below or above. */
+function sleepNeedCompare(tst24min){
   const band = AGE_BANDS[cur().settings.ageBand];
   if (!band || isNaN(tst24min)) return null;
   const h = tst24min/60;
-  const range = band.recLo+"–"+band.recHi+" h";
+  const range = band.recHi == null ? band.recLo+" h or more" : band.recLo+"–"+band.recHi+" h";
   let cls, text;
-  if (h >= band.recLo && h <= band.recHi){
-    cls = "ok";  text = "Within the recommended range ("+range+") for this age.";
-  } else if (h < band.recLo && h >= band.mayLo){
-    cls = "may"; text = "Below the recommended range ("+range+"), in the “may be appropriate” band for this age.";
-  } else if (h > band.recHi && h <= band.mayHi){
-    cls = "may"; text = "Above the recommended range ("+range+"), in the “may be appropriate” band for this age.";
-  } else if (h < band.mayLo){
-    cls = "out"; text = "Below the “may be appropriate” band for this age (recommended "+range+").";
+  if (h < band.recLo){
+    cls = "may"; text = "Below the recommended range ("+range+") for this age.";
+  } else if (band.recHi != null && h > band.recHi){
+    cls = "may"; text = "Above the recommended range ("+range+") for this age.";
   } else {
-    cls = "out"; text = "Above the “may be appropriate” band for this age (recommended "+range+").";
+    cls = "ok";  text = "Within the recommended range ("+range+") for this age.";
   }
   return { cls, text, band };
 }
@@ -730,9 +735,10 @@ function loggingLine(st){
   return t + ".";
 }
 /* Age-aware plausibility notes (ROADMAP 1.4): shown inline while the parent
-   types, never blocking. "Far outside" = more than 2 h beyond the NSF
-   "may be appropriate" band for the age group, for the 24-hour total. */
-const NSF_FAR_HOURS = 2;
+   types, never blocking. "Far outside" = more than 2 h beyond the
+   recommended range for the age group (AGE_BANDS), for the 24-hour total —
+   night sleep plus the naps logged for that day. */
+const FAR_HOURS = 2;
 function plausibilityNotes(e){
   const notes = [];
   const c = computeNight(e);
@@ -742,9 +748,9 @@ function plausibilityNotes(e){
   if (c.valid && !c.warnings.length){
     if (band){
       const h = c.tst24/60;
-      if (h < band.mayLo - NSF_FAR_HOURS)
+      if (h < band.recLo - FAR_HOURS)
         notes.push("This adds up to "+dur(c.tst24)+" of sleep in 24 hours — much less than usual for this age group. If that's what happened, leave it.");
-      else if (h > band.mayHi + NSF_FAR_HOURS)
+      else if (h > (band.recHi != null ? band.recHi : band.flagHi) + FAR_HOURS)
         notes.push("This adds up to "+dur(c.tst24)+" of sleep in 24 hours — much more than usual for this age group. If that's what happened, leave it.");
     }
     if (c.sol > 180)
@@ -1536,7 +1542,7 @@ const CHECKLIST_PAST = {
   "Screens off 60 min before bed": "Screens were off 60 min before bed",
   "Out of bed if awake > 20 min": "Got out of bed if awake more than 20 min",
   "No caffeine after 2 PM": "No caffeine after 2 PM",
-  "Same wake time all 7 days": "Woke up at the usual wake time",
+  "Same wake time all 7 days": "Woke up at the planned wake time",
   "Bedroom dark, cool, and quiet": "Bedroom was dark, cool, and quiet",
   "Brief check-ins at set intervals": "Did brief check-ins at set intervals",
   "Same calm 3-step routine every night (bath → books → bed)": "Did the same calm 3-step routine (bath → books → bed)",
@@ -1545,9 +1551,7 @@ const CHECKLIST_PAST = {
   "Tonight's spot: chair beside the bed — calm presence, minimal talk":
     "Last night's spot: chair beside the bed — calm presence, minimal talk",
   "Move the chair farther every 3 nights (middle of room → doorway → out)":
-    "Moved the chair farther if it was time (every 3 nights: middle of room → doorway → out)",
-  "Bright light within 30 min of waking (outside, or a light box, 10–20 min)":
-    "Got bright light within 30 min of waking (outside, or a light box, 10–20 min)",
+    "Chair stayed in the same spot or moved farther away",
   "Melatonin as prescribed — at the exact time on your prescription":
     "Took melatonin as prescribed — at the exact time on your prescription",
   "Sleep ONLY in the scheduled window — no naps, no dozing outside it":
@@ -1749,7 +1753,8 @@ function timingLegend(){
 /* Sleep efficiency by diary week (week 1 starts on the first recorded
    night). A diary overestimates SE and single nights swing widely, so the
    report judges the weekly mean (Dietch & Taylor 2021). */
-const SE_CAVEAT = "Read sleep efficiency as a weekly average, not night by night: diaries tend to overestimate it (by about 7 points against EEG in adults; Dietch & Taylor 2021), and single nights vary widely.";
+const SE_CAVEAT = "Sleep efficiency from a diary usually reads a little high, and single nights vary a lot. Look at the weekly average.";
+const SE_CAVEAT_CITE = "Diaries overestimate sleep efficiency (about 7 points against EEG in adults; Dietch & Taylor, J Clin Sleep Med 2021;17:1389).";
 function weeklySE(s){
   const weeks = [];
   s.rows.forEach(r=>{
@@ -1812,11 +1817,11 @@ function renderSummary(){
     pmStat(s.tst24.m,"Mean 24-hour sleep",null),
     el("div",{class:"stat"}, el("div",{class:"v"}, sri==null? "—" : sri.toFixed(0)), el("div",{class:"k"},"Sleep Regularity Index (usually 0–100; needs consecutive days)"))
   ));
-  const cmp = nsfCompare(s.tst24.m);
+  const cmp = sleepNeedCompare(s.tst24.m);
   if (cmp){
     card.append(el("div",{class:"nsf-flag "+cmp.cls},
       el("b",null,"24-hour sleep vs. age: "), cmp.text,
-      el("div",{class:"hint",style:"margin-top:4px"}, cmp.band.label+" · "+NSF_CITATION)));
+      el("div",{class:"hint",style:"margin-top:4px"}, cmp.band.label+" · "+cmp.band.cite)));
   }
   card.append(el("div",{class:"hint",style:"margin-top:8px"},
     "Bedtime/onset/wake variability is shown as ± SD. " + (s.teen
@@ -1931,12 +1936,12 @@ function buildTextReport(){
     L.push("DATA QUALITY");
     L.push("  "+loggingLine(s.logging));
   }
-  const cmp = nsfCompare(s.tst24.m);
+  const cmp = sleepNeedCompare(s.tst24.m);
   if (cmp){
     L.push("");
     L.push("SLEEP NEED ("+cmp.band.label+")");
     L.push("  "+cmp.text);
-    L.push("  "+NSF_CITATION);
+    L.push("  "+cmp.band.cite);
   }
   const plan = cur().plan, pa = planAdherence();
   if (plan && pa){
@@ -2075,10 +2080,10 @@ function buildPrintReport(){
   if (s.quality.n)
     box.append(el("div",{style:"margin-top:2px"},
       el("b",null,"Sleep quality ("+(reporter()==="teen"?"self":"parent")+"-rated, CSD 5-point scale): "), qualityLine(s)));
-  const cmp = nsfCompare(s.tst24.m);
+  const cmp = sleepNeedCompare(s.tst24.m);
   if (cmp){
     box.append(el("div",{class:"nsf-flag "+cmp.cls},
-      el("b",null,"24-hour sleep vs. age ("+cmp.band.label+"): "), cmp.text, " ", NSF_CITATION));
+      el("b",null,"24-hour sleep vs. age ("+cmp.band.label+"): "), cmp.text, " ", cmp.band.cite));
   }
   box.append(el("h2",null,"Sleep timing by night (open = lights out, filled = fell asleep / woke"
     +(cur().plan? "; dashed = plan target" : "")+")"));
@@ -2114,7 +2119,7 @@ function buildPrintReport(){
     noted.forEach(r=> box.append(el("div",null, fmtDateShort(r.e.date)+": "+r.e.notes)));
   }
   box.append(el("div",{class:"prfoot"},
-    "Definitions: TST = total sleep time; SE = sleep efficiency (TST ÷ time in bed, counted from lights out"+(s.teen? "; “into bed” counts from getting into bed instead" : "")+"); WASO = wake after sleep onset; SRI = Sleep Regularity Index (Phillips et al., 5-min epochs, consecutive days). Generated by Pediatric Sleep Diary — no data leaves the family's device except reports they share."));
+    "Definitions: TST = total sleep time; SE = sleep efficiency (TST ÷ time in bed, counted from lights out"+(s.teen? "; “into bed” counts from getting into bed instead" : "")+"); WASO = wake after sleep onset; SRI = Sleep Regularity Index (Phillips et al., 5-min epochs, consecutive days). "+SE_CAVEAT_CITE+" Generated by Pediatric Sleep Diary — no data leaves the family's device except reports they share."));
   return true;
 }
 function printReport(){

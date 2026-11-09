@@ -73,6 +73,13 @@ signs off its [TBD] values.
 | 2.7 | **Printable nightly schedule** for chronotherapy and phase advance (each night's bed/wake target on the handout) | G7 |
 | 2.8 | **Pre-visit capsule**: the QR/link carries short provider instructions ("Please log 7 nights before your 12/3 visit"); supports the diary-return-rate QI project | G14 |
 
+Note for 2.5 (Craig, 2026-11-09): families move the camping-out chair faster
+or slower depending on how it's going, so "move every 3 nights" can't be
+ticked truthfully. For now the diary shows that item as "Chair stayed in the
+same spot or moved farther away". The better design is one nightly choice of
+where the chair was (beside bed / middle of room / doorway / out), replacing
+both chair items in plan.html.
+
 Explicitly **not** built: crying tracker, check-in timer (G11). The night-waking
 log stays as is.
 
@@ -133,6 +140,10 @@ clinic build in Phase 3 and stays recoverable in git.
   **Teen-only fields (1.1, 1.2) follow the age band — DECIDED 2026-11-09:**
   shown for the Teenager (14–17) and Young adult (18–25) bands. 13-year-olds
   wait for a later refinement (e.g. asking exact age).
+  **Updated 2026-11-09 (Craig):** the app now uses the AASM age groups
+  (Paruthi 2016, AAP-endorsed), where Teenager is 13–18, so 13-year-olds get
+  the teen default and the teen-only fields. The two notes above are
+  superseded.
 - **D2. Calendar files — DECIDED 2026-11-09:** (a) one daily *morning*
   reminder .ics, default ~30 min after the child's usual wake time, parent
   picks the time; (b) chronotherapy / phase-advance plans are still built in
