@@ -466,6 +466,20 @@ naps-only first row.
 Talking point: the bug was found by explaining the feature out loud, not by
 testing it.
 
+### 2026-11-09 (later still) — Chronotherapy preset matches the clinic
+Written up for the Friday protocol review with Dr. Garay, and Craig
+corrected it: in clinic, chronotherapy is a 9-hour sleep opportunity moved
+2–3 hours later every day or two until it lands on the target, usually
+9:00 PM–6:00 AM, so the wake time moves every day. The app's math already
+moved the whole window, but the preset said 9:30 PM / 7:00 AM and its
+checklist opened with "Same wake time all 7 days". Now the preset is
+9:00 PM / 6:00 AM, that item is replaced by "Get up at the scheduled wake
+time (it moves later along with bedtime)", and the plan builder lists each
+night's full window (bedtime to wake time) up to the target instead of
+only describing the bedtime. v2.5.1. Verified in the browser: 3 h every
+night reaches 9 PM–6 AM on night 7; 2 h every 2 nights on night 19; phase
+advance unchanged.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26

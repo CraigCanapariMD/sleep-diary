@@ -6,6 +6,8 @@
 <title>Sleep Plan Builder — Pediatric Sleep Diary</title>
 <meta name="robots" content="noindex">
 <style>
+.nightlist{list-style:none;padding:0;margin:6px 0 0;font-size:.95em}
+.nightlist li{margin:1px 0}
 /* ---- Fossil brand tokens (aligned with the shared brand.css) ---- */
 :root{
   --brand-bg:#F5F2EE; --brand-surface:#EDE9E4; --brand-ink:#050911;
@@ -381,8 +383,8 @@ const PROTOCOLS = {
       {id:"mel",label:"Melatonin as prescribed — at the exact time on your prescription"}],
     note:"The morning anchor does the heavy lifting: same wake time all 7 days. Bedtime follows." },
   chrono: { mode:"delay",
-    targets:{bed:"21:30",wake:"07:00"}, fade:{on:true,from:"03:00",step:"180",every:"1"},
-    checklist:[T.anchor,T.darkcool,
+    targets:{bed:"21:00",wake:"06:00"}, fade:{on:true,from:"03:00",step:"180",every:"1"},
+    checklist:[{id:"chrwake",label:"Get up at the scheduled wake time (it moves later along with bedtime)"},T.darkcool,
       {id:"chr1",label:"Sleep ONLY in the scheduled window — no naps, no dozing outside it"},
       {id:"chr2",label:"Keep the schedule all 7 days during the shift — no exceptions"}],
     note:"For about a week your sleep moves later around the clock until it lands at the target — then we hold it there, hard." },
@@ -490,12 +492,28 @@ function render(){
     const nightsWord = "every "+(f.every>1 ? f.every+" nights" : "night");
     const tail = "reaches the "+clock(f.target)+" target on night "+f.reachNight+
       " ("+fmtD(addDays(start, f.reachNight-1))+").";
+    let winDur = 0;
+    if(f.mode==="delay") winDur = ((hm($("#twake").value) - f.target)%1440+1440)%1440;
+    const win = b => clock(b)+"–"+clock((b+winDur)%1440);
     fadeText = f.mode==="delay"
-      ? "Bedtime starts at "+clock(f.from)+" and moves "+stepFmt+" later "+nightsWord+
-        ", around the clock, until it "+tail
+      ? "The "+(winDur/60).toFixed(winDur%60?1:0)+"-hour sleep window (bedtime to wake time) starts at "+
+        win(f.from)+" and moves "+stepFmt+" later "+nightsWord+", around the clock, until it reaches "+
+        win(f.target)+" on night "+f.reachNight+" ("+fmtD(addDays(start, f.reachNight-1))+
+        "). Wake time moves with bedtime."
       : "Bedtime starts at "+clock(f.from)+", moves "+stepFmt+" "+
         (f.dir<0?"earlier":"later")+" "+nightsWord+", and "+tail;
     $("#fadeSummary").textContent = fadeText;
+    if(f.mode==="delay"){
+      /* chronotherapy: list each night's full window up to the target */
+      const ol=document.createElement("ol"); ol.className="nightlist";
+      let prev=-1;
+      for(let i=1;i<=f.reachNight;i++){ const b=f.at(i); if(b===prev) continue; prev=b;
+        const li=document.createElement("li"); li.value=i;
+        const last = i===f.reachNight;
+        li.textContent=(f.every>1 && !last ? "Nights "+i+"–"+(i+f.every-1) : "Night "+i)+": "+
+          win(b)+(last?" — target, then hold it":""); ol.append(li); }
+      $("#fadeSummary").append(ol);
+    }
   }
 
   /* phone preview: tonight = plan night 1 */
@@ -551,7 +569,8 @@ function render(){
   let tgt = "Bedtime "+clock(hm($("#tbed").value))+" · wake "+clock(hm($("#twake").value));
   if($("#wkend").checked) tgt += " (weekends: "+clock(hm($("#tbedW").value))+" / "+clock(hm($("#twakeW").value))+")";
   $("#hTargets").textContent = tgt + (fadeText ? " — "+fadeText+
-    " The diary shows each night's bedtime automatically." : "");
+    (fadeText.indexOf("Wake time moves")>=0 ? " The diary shows each night's bedtime and wake time automatically."
+                 : " The diary shows each night's bedtime automatically.") : "");
   $("#hChecklist").innerHTML = picked.map(c=>"<li>"+esc(c.label)+"</li>").join("");
   $("#hNote").textContent = note; $("#hNote").style.display = note ? "block" : "none";
   $("#hLink").textContent = link;
