@@ -80,15 +80,21 @@ Generate the QR code from your Pages URL with any QR generator.
   bed, awakenings (time, duration, whether a parent helped), naps, and notes.
   New entries prefill from the previous night. Missed nights are surfaced as
   one-tap catch-up chips. Replacing an already-recorded night asks first.
+  A one-row preview of the night redraws as the times change, with gentle
+  "worth a look" notes (never blocking) when something looks off for the
+  child's age. One optional tap rates the night on the Consensus Sleep
+  Diary's 5-point scale. Teenager and Young adult diaries also ask "Got into
+  bed" and report sleep efficiency two ways (from lights out, and from
+  getting into bed).
 - **Chart**: Mindell & Owens–style shaded log, one row per day, noon → noon.
 - **Summary**: mean ± SD lights-out / onset / wake / midsleep; sleep latency,
   night TST, TIB, sleep efficiency (TST÷TIB), WASO, awakenings and parental
   interventions per night, nap sleep, 24-h TST, Sleep Regularity Index
   (Phillips et al., 5-min epochs, consecutive days) — plus, if an age group is
-  set, a comparison of mean 24-h sleep against the National Sleep Foundation
-  recommended ranges (Hirshkowitz et al., *Sleep Health* 2015; re-certified by
-  Dzierzewski et al., *Sleep Health* 2026): within recommended / "may be
-  appropriate" / outside.
+  set, a comparison of mean 24-h sleep against the American Academy of Sleep
+  Medicine recommended ranges (Paruthi et al., *J Clin Sleep Med* 2016;
+  endorsed by the American Academy of Pediatrics): within, below or above
+  the recommended range.
 - **Share**: copy-paste text summary (MyChart), printable PDF report including
   the chart, CSV export, JSON backup file, optional Google Drive backup.
 - **Multiple children** per device, each with their own diary, initials, and
@@ -136,7 +142,12 @@ Generate the QR code from your Pages URL with any QR generator.
 One row per night: `child_initials, date, lights_out, sleep_onset, final_wake,
 out_of_bed, sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
 n_parent_interventions, awakenings_detail, n_naps, nap_sleep_min, naps_detail,
-notes`. Times are 24-h clock; durations are minutes.
+got_into_bed, tib_from_bed_min, se_from_bed_pct, sleep_quality, logged_at,
+logged_lag_days, reported_by, nap_status, notes`. Times are 24-h clock; durations are
+minutes. `se_pct` is sleep efficiency from lights out; the three "from bed"
+columns are filled only for the Teenager and Young adult age groups.
+`sleep_quality` is 1 (Very poor) to 5 (Very good); `logged_at` is when the
+night was first entered (the phone's local time).
 
 **For research**: the [`redcap/`](redcap/) folder has a ready-made REDCap
 data dictionary and coordinator guide, and the app's Share tab has a
@@ -145,20 +156,25 @@ a REDCap-ready CSV (repeat instances keyed to study day; no initials, no
 notes). See [the REDCap spec](docs/specs/redcap-research-backend.md) for the
 planned direct-submission Phase B.
 
-## NSF sleep-duration reference values (hours, by age)
+## Recommended sleep duration reference values (hours per 24 h, by age)
 
-| Age group | Recommended | May be appropriate |
+| Age group | Recommended | Source |
 |---|---|---|
-| Newborn 0–3 mo | 14–17 | 11–13, 18–19 |
-| Infant 4–11 mo | 12–15 | 10–11, 16–18 |
-| Toddler 1–2 y | 11–14 | 9–10, 15–16 |
-| Preschool 3–5 y | 10–13 | 8–9, 14 |
-| School age 6–13 y | 9–11 | 7–8, 12 |
-| Teen 14–17 y | 8–10 | 7, 11 |
-| Young adult 18–25 y | 7–9 | 6, 10–11 |
+| Newborn 0–3 mo | 14–17 | NSF (the AASM makes no recommendation under 4 months) |
+| Infant 4–12 mo | 12–16 | AASM |
+| Toddler 1–2 y | 11–14 | AASM |
+| Preschool 3–5 y | 10–13 | AASM |
+| School age 6–12 y | 9–12 | AASM |
+| Teen 13–18 y | 8–10 | AASM |
+| Young adult 19–25 y | 7 or more | AASM/SRS adult statement |
 
-Source: Hirshkowitz M, et al. *Sleep Health* 2015;1(1):40–43; re-certified by
-Dzierzewski JM, et al. *Sleep Health* 2026 (10-year systematic review).
+Sources: Paruthi S, et al. Recommended Amount of Sleep for Pediatric
+Populations: A Consensus Statement of the American Academy of Sleep Medicine.
+*J Clin Sleep Med* 2016;12(6):785–786 (endorsed by the American Academy of
+Pediatrics). Newborns: Hirshkowitz M, et al. *Sleep Health* 2015;1(1):40–43,
+re-certified by Dzierzewski JM, et al. *Sleep Health* 2026 (10-year
+systematic review).
+Adults: Watson NF, et al. *Sleep* 2015;38(6):843–844.
 
 ## Brand
 
@@ -266,5 +282,5 @@ additional small-practice grant](LICENSE). In plain English:
 
 Versions published on or before 2026-07-11 were MIT-licensed and remain so.
 Chart format inspired by the Mindell & Owens pediatric sleep log. Not a
-medical device; provides no diagnosis or treatment advice. NSF reference
+medical device; provides no diagnosis or treatment advice. Sleep-duration reference
 values are cited in the app and above.

@@ -52,6 +52,18 @@ updated export; already-imported nights are simply refreshed.
 - Times are 24-hour clock; durations are minutes; metrics (`sol_min`,
   `tst_min`, `se_pct`, `waso_min`, …) are computed by the app exactly as
   defined in the [main README](../README.md)'s data dictionary.
+- `se_pct` is sleep efficiency counted from lights out. In the Teenager and
+  Young adult age groups the app also asks "Got into bed" (`got_into_bed`,
+  CSD Core item 1) and computes `tib_from_bed_min` and `se_from_bed_pct`
+  from it; all three are blank in younger children's diaries.
+- `sleep_quality` is the optional CSD Core item 8 rating (1 = Very poor …
+  5 = Very good). `logged_at` (phone's local time) and `logged_lag_days`
+  record when the night was first entered, so backfilled nights can be
+  told apart; `reported_by` is the diary's parent/teen setting.
+- `nap_status` separates a day with no nap (`no_nap`) from a day where the
+  nap question was shown but not answered (`not_recorded`); leave the
+  latter out of nap and 24-hour totals. `not_asked` is a child who doesn't
+  usually nap, or a night entered before v2.5.0.
 - `screen_off`, `screen_in_bed`, `screen_after_lights_out` are reserved for
   the planned teen self-report version
   ([spec](../docs/specs/teen-screen-time.md)) and arrive blank from parent

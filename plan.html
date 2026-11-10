@@ -167,7 +167,7 @@ a{color:var(--brand-accent-text)}
             <option value="campout">Camping out (parental presence fading)</option>
           </optgroup>
           <optgroup label="Teens — delayed sleep phase">
-            <option value="advance">Phase advance (step earlier, light + anchor)</option>
+            <option value="advance">Phase advance (step earlier + wake anchor)</option>
             <option value="chrono">Chronotherapy (progressive delay — supervised)</option>
           </optgroup>
         </select>
@@ -378,9 +378,8 @@ const PROTOCOLS = {
   advance: { mode:"advance",
     targets:{bed:"21:30",wake:"07:00"}, fade:{on:true,from:"23:30",step:"15",every:"3"},
     checklist:[T.anchor,T.screens60,T.nocaf,
-      {id:"light",label:"Bright light within 30 min of waking (outside, or a light box, 10–20 min)"},
       {id:"mel",label:"Melatonin as prescribed — at the exact time on your prescription"}],
-    note:"The morning anchor does the heavy lifting: same wake time all 7 days, light right away. Bedtime follows." },
+    note:"The morning anchor does the heavy lifting: same wake time all 7 days. Bedtime follows." },
   chrono: { mode:"delay",
     targets:{bed:"21:30",wake:"07:00"}, fade:{on:true,from:"03:00",step:"180",every:"1"},
     checklist:[T.anchor,T.darkcool,

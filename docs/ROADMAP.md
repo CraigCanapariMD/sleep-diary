@@ -33,6 +33,9 @@ papers:
 
 ## Phase 1 — Data shape and data quality (no outside dependencies; start now)
 
+**Built 2026-11-09 in v2.5.0** (all of 1.1–1.8 and the D1 setting; see the
+BUILDLOG entry of that date for what was verified and what is left to decide).
+
 Everything here can be built without clinical sign-off. It settles what data
 gets stored before any family uses the app.
 
@@ -46,6 +49,7 @@ gets stored before any family uses the app.
 | 1.6 | **Checklist reworded for the next morning**, in past tense ("Did you…last night"). The flow already runs in the morning; only the wording is written for bedtime | G10, CSD | none |
 | 1.7 | **Clinician report: sleep-timing graph** (onset/wake by night, with plan targets), not only mean ± SD. SE shown as a weekly mean with a one-line caveat | G9, Dietch | none |
 | 1.8 | **"How did your child sleep last night?"**: one optional tap on CSD Core #8's 5-point scale (Very poor · Poor · Fair · Good · Very good). Teen view uses the CSD wording "How would you rate the quality of your sleep?" CBT-i Coach uses the same CSD wording and scale (its item 9), shown as five tappable faces with the chosen label underneath. Do the same: faces read well at low literacy, with text labels for accessibility. Shown per night in the table and as a distribution in the report | D5, CSD Core #8, CBT-i Coach | one optional tap |
+| 1.9 | **The nap question** (added 2026-11-09, Craig): children who usually nap see one-tap answers in the nap section: their usual nap, or "No nap that day". "Usually naps" is learned from the diary (a nap on 3 of the last 7 logged days); until there is a week of data the age group decides: asked for newborn through preschooler and for teenagers and young adults, not for school age. An unanswered day is stored as "not recorded", not zero, and is left out of the nap and 24-hour averages; the report says "Naps answered on N of M days" | Craig | one optional tap |
 
 **Labels for 1.2** (D3, decided): *SE from lights out* (existing metric) and
 *SE from getting into bed* (new). They replace the working name "teenage time".
@@ -69,6 +73,13 @@ signs off its [TBD] values.
 | 2.6 | **Bedtime game metric**: "Did your child fall asleep before you came back?" and "How long were you out of the room?" | G13 |
 | 2.7 | **Printable nightly schedule** for chronotherapy and phase advance (each night's bed/wake target on the handout) | G7 |
 | 2.8 | **Pre-visit capsule**: the QR/link carries short provider instructions ("Please log 7 nights before your 12/3 visit"); supports the diary-return-rate QI project | G14 |
+
+Note for 2.5 (Craig, 2026-11-09): families move the camping-out chair faster
+or slower depending on how it's going, so "move every 3 nights" can't be
+ticked truthfully. For now the diary shows that item as "Chair stayed in the
+same spot or moved farther away". The better design is one nightly choice of
+where the chair was (beside bed / middle of room / doorway / out), replacing
+both chair items in plan.html.
 
 Explicitly **not** built: crying tracker, check-in timer (G11). The night-waking
 log stays as is.
@@ -130,6 +141,10 @@ clinic build in Phase 3 and stays recoverable in git.
   **Teen-only fields (1.1, 1.2) follow the age band — DECIDED 2026-11-09:**
   shown for the Teenager (14–17) and Young adult (18–25) bands. 13-year-olds
   wait for a later refinement (e.g. asking exact age).
+  **Updated 2026-11-09 (Craig):** the app now uses the AASM age groups
+  (Paruthi 2016, AAP-endorsed), where Teenager is 13–18, so 13-year-olds get
+  the teen default and the teen-only fields. The two notes above are
+  superseded.
 - **D2. Calendar files — DECIDED 2026-11-09:** (a) one daily *morning*
   reminder .ics, default ~30 min after the child's usual wake time, parent
   picks the time; (b) chronotherapy / phase-advance plans are still built in

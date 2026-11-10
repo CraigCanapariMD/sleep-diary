@@ -374,6 +374,98 @@ lawyer: the DCO covers the noncommercial license, not the commercial one.
 Talking point: the first contributor's onboarding doc leads with "made-up
 data only" — in a medical app, that's the rule that matters most.
 
+### 2026-11-09 (evening) — Roadmap Phase 1: data shape and data quality
+All eight Phase 1 items and the D1 setting, in one pass, before any family
+has a diary to migrate. New per-night fields, all optional: `intoBed`
+(Teenager and Young adult age bands only; it starts equal to lights out and
+follows it until the two are set apart), `quality` (1–5, the Consensus Sleep
+Diary's anchors, five tappable faces with the chosen label underneath),
+`loggedAt` (set silently on the first save, never changed by an edit) and
+`editedAt`. New per-diary setting: `settings.reporter` (parent or teen),
+asked once in Setup, defaulting from the age band; it picks the wording of
+the quality question and nothing else yet. `computeNight()` is untouched:
+the second efficiency number lives in a separate `bedMetrics()`, so a diary
+with none of the new fields produces the same numbers and the same table
+columns as before. The entry form now draws the night as one chart row that
+redraws on every keystroke, with "Worth a look" notes underneath (24-hour
+sleep more than 2 h outside the recommended range for the age, a nap
+overlapping the night, a nap over 4 h, an awakening outside the sleep
+window, over 3 h to fall asleep). None of them block; the save-time confirm
+is still the only dialog. The plan checklist is reworded for the morning at
+render time, by exact match on the label text from plan.html's library, so
+a clinician's custom item is never rewritten beyond "tonight" → "last
+night", and reports keep the original wording. The report and Summary tab
+gained a sleep-timing graph (lights out and sleep onset in one panel, wake
+in another, plan targets dashed) and sleep efficiency by week with a
+one-line caveat from Dietch & Taylor. Both CSVs and the REDCap dictionary
+carry seven new columns. Verified in the browser: the synthetic toddler
+backup restores to the same 21 nights, SE 90%, same table columns; a new
+night stamps `loggedAt` and an edit leaves it alone; the demo's new made-up
+teenager shows SE 88% from lights out against 79% from getting into bed
+(checked one night by hand: 420 ÷ 520 min = 80.8%); an AM/PM slip empties
+the preview bar. CACHE_VERSION 2.4.0 → 2.5.0, demo and www rebuilt.
+Same day, Craig's call: the age comparison moved from the NSF ranges to the
+AASM consensus statement the AAP endorsed (Paruthi 2016). Teenager now
+starts at 13, which settles the roadmap's "what about 13-year-olds" note;
+newborns keep the NSF range because the AASM gives none under 4 months, and
+young adults use the adult statement's "7 or more hours". The comparison is
+now within / below / above; the "may be appropriate" band is gone.
+Craig also settled the checklist wording: "Woke up at the planned wake time";
+the chair item reads "Chair stayed in the same spot or moved farther away",
+because families set their own pace; and morning bright light came out of
+the phase-advance plan altogether (impossible on school days for most teens,
+and possibly mistimed in a true phase delay).
+Talking point: the form didn't get a single new pop-up. The check is a
+picture of the night, drawn while you type.
+
+### 2026-11-09 (night) — The nap question
+Craig's point: an empty nap list meant two different things, "skipped the
+nap" and "forgot to log it", and the usual fix (a reminder) is exactly the
+nagging the app avoids. Resolution: children who usually nap see one-tap
+answers in the nap section, their usual nap ("+ Usual nap (1:05 PM, 70
+min)") or "No nap that day". Nothing is filled in until tapped. "Usually
+naps" is learned from the diary (a nap on 3 of the last 7 logged days; the
+usual nap is the median start and length); until there is a week of data
+the age group decides. Craig's correction to the first draft: teenagers do
+nap, so they are asked by default and school-age children are not. An
+unanswered day is stored as "not recorded" rather than zero (`napAsked`
+without `noNap`), left out of the nap and 24-hour averages, and counted in
+the report ("Naps answered on 8 of 9 days"). Entries from before the
+question existed still count as zero and are not re-asked on edit. New
+export column `nap_status`. Verified in the browser on the demo toddler
+(usual-nap chip adds the nap and draws it in the preview; "No nap" saves
+as a real zero; an untouched section saves as not recorded and drops out
+of the nap mean) and on fresh school-age, toddler and unset-age diaries.
+Still CACHE_VERSION 2.5.0 (same unreleased PR). Not changed: a morning nap
+is still drawn at the right-hand end of the previous day's chart row.
+Talking point: the fix for missing data wasn't a reminder. It was letting
+"nothing happened" be an answer.
+
+### 2026-11-09 (late) — Morning naps land on the right row
+A bug older than today, found while describing how naps work: each chart
+row runs noon to noon, but naps are stored with the calendar day they
+happened on, so a 9:30 AM nap was drawn at the right-hand end of its own
+day's row, which is the *next* morning. One day late on the chart and in
+the regularity index, and mostly for infants, who are the ones with
+morning naps. The stored data was right, so the fix is in the drawing:
+`napPieces()` puts a before-noon nap at the end of the previous day's row,
+splits a nap that runs through noon across the two rows, and gives a
+morning nap its own naps-only row when the day before has no entry. The
+regularity index uses the same placement. One change inside
+`computeNight()`, flagged because Phase 1 otherwise left it alone: a nap's
+length is now its clock length, so a nap from 11:30 AM for 90 minutes
+counts whole instead of raising "split it at noon" (the save-time warning
+remains for a nap that ends before it starts). The entry form's preview is
+one night, so it says in a line that before-noon naps are on the Chart tab,
+and two new soft notes catch a nap typed as 1:00 AM and a morning nap that
+starts before that morning's out-of-bed time. Verified in the browser: the
+synthetic toddler (afternoon naps only) is unchanged (21 rows, 19 naps, SE
+89.7%, SRI 86.7); a made-up infant shows morning naps after the right
+night, the noon-crossing nap in two pieces counted as 90 minutes, and a
+naps-only first row.
+Talking point: the bug was found by explaining the feature out loud, not by
+testing it.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26
