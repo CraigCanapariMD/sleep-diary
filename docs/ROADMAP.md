@@ -74,6 +74,7 @@ signs off its [TBD] values.
 | 2.6 | **Bedtime game metric**: "Did your child fall asleep before you came back?" and "How long were you out of the room?" | G13 |
 | 2.7 | **Printable nightly schedule** for chronotherapy and phase advance (each night's bed/wake target on the handout) | G7 |
 | 2.8 | **Pre-visit capsule**: the QR/link carries short provider instructions ("Please log 7 nights before your 12/3 visit"); supports the diary-return-rate QI project | G14 |
+| 2.9 | **Progress view, shown to parents only when there is real progress.** Compare a baseline window with the latest 7 nights and show up to three plain-language wins ("Falling asleep: about 35 min → about 15 min"). Silence when nothing qualifies; never show worsening to parents. Clinician report gets the full weekly trend either way. Rules below | Garay 11/13 |
 
 Note for 2.5 (Craig, 2026-11-09): families move the camping-out chair faster
 or slower depending on how it's going, so "move every 3 nights" can't be
@@ -86,7 +87,33 @@ Explicitly **not** built: crying tracker, check-in timer (G11). The night-waking
 log stays as is.
 
 **Blocked on:** Danielle's adapted bedtime game materials (2.5); [TBD] values
-for 2.1/2.2; her view on 2.3's list.
+for 2.1/2.2; her view on 2.3's list; the 2.9 thresholds.
+
+**2.9 progress rules (draft; thresholds [TBD] with Dr. Garay):**
+
+- **Windows.** Baseline = the 7 nights before the plan started (or the first 7
+  logged nights without a plan). Recent = the latest 7 nights. Each window
+  needs at least 5 logged nights, or nothing is shown.
+- **Wait out the extinction burst.** No comparison until 7 nights into a plan;
+  early nights of graduated extinction often look worse before better.
+- **"Real" means:** the recent *median* beats the baseline median by at least
+  the metric's threshold, in the good direction. Medians, so one bad night
+  doesn't erase a win or one good night fake one.
+- **Candidate metrics (age-dependent) and placeholder thresholds:** time to
+  fall asleep (10 min shorter); night wakings (0.5 fewer per night); minutes
+  awake at night (15 min less); nights needing help (2 fewer per week);
+  bedtime consistency (SD 15 min smaller); bedtime closer to the plan target;
+  falling asleep with a parent out of the room / in own bed (2 more nights per
+  week; counts only answers the parent confirmed, not carried-forward
+  defaults, item 1.9); total sleep moving into the NSF range. Teens: SE from
+  getting into bed; time from getting into bed to lights out.
+- **Show at most three**, largest relative change first, as before → after in
+  everyday words. No scores, no red, no "you missed". If nothing qualifies,
+  show nothing, or at most a neutral "keep logging" line (Danielle's call).
+- **Clinician report** always shows weekly means for the same metrics, better
+  or worse, so the visit isn't skewed by what the parent saw.
+- Plain description of change, not causation: "since the plan started", never
+  "the plan worked".
 
 ## Phase 3 — Clinic release (security review)
 
