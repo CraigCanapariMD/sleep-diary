@@ -107,6 +107,35 @@ Reminders for the review ("how do families get reminded?"): see decision D2.
 - **App Store / Play releases** (reliable notifications), **Drive backup**
   (OAuth registration only).
 - **Later protocol modules**: CBT for nightmares, CBT for narcolepsy.
+- **Progress view, shown to parents only when progress is real** (Garay
+  11/13). Deferred until the Phase 2 plans are more mature (Craig,
+  2026-11-13): the comparison anchors on plan start dates and plan types, so
+  it should wait for those to settle.
+  Draft rules (thresholds [TBD] with Dr. Garay):
+
+  - **Windows.** Baseline = the 7 nights before the plan started (or the first 7
+    logged nights without a plan). Recent = the latest 7 nights. Each window
+    needs at least 5 logged nights, or nothing is shown.
+  - **Wait out the extinction burst.** No comparison until 7 nights into a plan;
+    early nights of graduated extinction often look worse before better.
+  - **"Real" means:** the recent *median* beats the baseline median by at least
+    the metric's threshold, in the good direction. Medians, so one bad night
+    doesn't erase a win or one good night fake one.
+  - **Candidate metrics (age-dependent) and placeholder thresholds:** time to
+    fall asleep (10 min shorter); night wakings (0.5 fewer per night); minutes
+    awake at night (15 min less); nights needing help (2 fewer per week);
+    bedtime consistency (SD 15 min smaller); bedtime closer to the plan target;
+    falling asleep with a parent out of the room / in own bed (2 more nights per
+    week; counts only answers the parent confirmed, not carried-forward
+    defaults, item 1.9); total sleep moving into the NSF range. Teens: SE from
+    getting into bed; time from getting into bed to lights out.
+  - **Show at most three**, largest relative change first, as before → after in
+    everyday words. No scores, no red, no "you missed". If nothing qualifies,
+    show nothing, or at most a neutral "keep logging" line (Danielle's call).
+  - **Clinician report** always shows weekly means for the same metrics, better
+    or worse, so the visit isn't skewed by what the parent saw.
+  - Plain description of change, not causation: "since the plan started", never
+    "the plan worked".
 
 ## Research track (separate from the clinic build)
 
