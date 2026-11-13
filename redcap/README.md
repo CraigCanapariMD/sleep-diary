@@ -60,6 +60,12 @@ updated export; already-imported nights are simply refreshed.
   5 = Very good). `logged_at` (phone's local time) and `logged_lag_days`
   record when the night was first entered, so backfilled nights can be
   told apart; `reported_by` is the diary's parent/teen setting.
+- `onset_parent`, `onset_place` and `onset_carried` are BISQ-aligned
+  pediatric extensions with no Consensus Sleep Diary equivalent: where a
+  parent was and where the child was at sleep onset, asked below the
+  Teenager age group. `onset_carried` = 1 marks answers carried forward
+  from the previous night that the parent did not touch. The help types
+  inside `awakenings_detail` follow the BISQ night-waking response items.
 - `nap_status` separates a day with no nap (`no_nap`) from a day where the
   nap question was shown but not answered (`not_recorded`); leave the
   latter out of nap and 24-hour totals. `not_asked` is a child who doesn't
