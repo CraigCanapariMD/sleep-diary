@@ -154,6 +154,11 @@ textarea{resize:vertical;min-height:54px}
 /* missed-night chips */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
 .chips button{background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-link);font-weight:700;font-size:13.5px;padding:7px 11px;border-radius:999px}
+.chips button[aria-checked="true"]{background:var(--brand-accent-tint);border:2px solid var(--color-accent);padding:6px 10px}
+/* sleep-onset context: one summary line that opens two chip rows */
+.onset-line{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;text-align:left;margin-top:8px;
+  background:var(--color-bg);border:1px solid var(--color-border);color:var(--color-text);font-weight:400;font-size:14.5px;padding:9px 11px}
+.onset-line .chg{color:var(--color-link);font-weight:700;white-space:nowrap}
 /* stats */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat{background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--brand-radius);padding:10px}
@@ -585,10 +590,54 @@ function sd(a){
 }
 
 /* ---------- per-night computation ---------- */
+/* Night-waking help, aligned with the BISQ's night-waking response items
+   (Sadeh 2004; BISQ-R, Mindell 2019). "room" (Comforted in room) was split
+   into held / soothed in v2.6.0: it still displays on nights recorded
+   before that, but is no longer offered. "Fed" is offered under age 3 only. */
 const HELP_LABELS = {
-  none:"No help needed", room:"Comforted in room", fed:"Fed",
+  none:"No help needed",
+  soothed:"Soothed without picking up (pat, shush, brief check)",
+  held:"Picked up, held or rocked",
+  room:"Comforted in room", fed:"Fed",
   bed:"Brought to parents' bed", other:"Other"
 };
+const FED_BANDS = { newborn:1, infant:1, toddler:1 };
+/* The help choices offered for one awakening: never the legacy "room", and
+   "fed" only below age 3 (or when no age group is set) — but a code already
+   saved on this awakening always stays visible. */
+function helpChoices(current){
+  const band = cur().settings.ageBand;
+  return Object.keys(HELP_LABELS).filter(k=>{
+    if (k === current) return true;
+    if (k === "room") return false;
+    if (k === "fed") return !band || !!FED_BANDS[band];
+    return true;
+  });
+}
+/* Sleep-onset context (ROADMAP 1.10) — BISQ-aligned pediatric extensions,
+   no Consensus Sleep Diary equivalent. Asked for every age group below
+   Teenager. Stored per night as short codes in onsetWith / onsetPlace, plus
+   onsetCarried: true when the saved answer is the value carried forward
+   from the previous night and the parent never touched it. */
+const ONSET_WITH = { bed:"In bed with child", room:"In the room", out:"Out of the room" };
+const ONSET_PLACE = { own:"Own bed or crib, own room", ownpar:"Own bed or crib, parents' room",
+                      parbed:"Parents' bed", else:"Somewhere else (arms, couch, car, stroller)" };
+const ONSET_WITH_SHORT = { bed:"parent in bed with child", room:"parent in the room", out:"parent out of the room" };
+const ONSET_PLACE_SHORT = { own:"in own bed", ownpar:"in own bed, parents' room", parbed:"in parents' bed", else:"somewhere else" };
+/* Plans whose whole point is where the parent is at sleep onset: presence
+   is asked fresh every night instead of carried forward. Only campout and
+   fading exist in plan.html today; the bedtime game / bedtime pass ids are
+   listed for when Phase 2 adds them. */
+const PRESENCE_PROTOCOLS = { campout:1, fading:1, bedtimegame:1, bedtimepass:1 };
+function asksOnset(){ return !isTeenBand(); }
+function onsetLine(s){
+  const o = s.onsetCtx, parts = [];
+  if (o.withN) parts.push("Parent present at sleep onset: "+o.present+" of "+o.withN+" night"+(o.withN===1?"":"s")
+    +" (confirmed "+o.confirmed+")");
+  if (o.placeN) parts.push((o.withN ? "own bed " : "Fell asleep in own bed or crib: ")+o.ownBed+" of "+o.placeN
+    +(o.ownParRoom ? " ("+o.ownParRoom+" in parents' room)" : ""));
+  return parts.join(" · ");
+}
 /* Where a nap falls on the diary's noon-to-noon rows. Naps are stored with
    the calendar day they happened on (entry D), but row D runs from noon on
    D to noon on D+1 — so a nap before noon belongs at the right-hand end of
@@ -829,6 +878,13 @@ function computeSummary(){
     /* Phase 1 additions — all optional, absent data leaves them empty */
     teen: isTeenBand(),
     seBed:{ m:mean(seBed), n:seBed.length },
+    onsetCtx: (()=>{
+      const w = rows.filter(r=> ONSET_WITH[r.e.onsetWith]), pl = rows.filter(r=> ONSET_PLACE[r.e.onsetPlace]);
+      const present = w.filter(r=> r.e.onsetWith !== "out");
+      return { withN:w.length, present:present.length, confirmed:present.filter(r=> !r.e.onsetCarried).length,
+               placeN:pl.length, ownBed:pl.filter(r=> r.e.onsetPlace === "own" || r.e.onsetPlace === "ownpar").length,
+               ownParRoom:pl.filter(r=> r.e.onsetPlace === "ownpar").length };
+    })(),
     quality:{ n:rated.length, counts:[1,2,3,4,5].map(q=> rated.filter(r=> r.e.quality === q).length) },
     logging: loggingStats(rows.map(r=>r.e)),
     rows
@@ -1420,10 +1476,55 @@ function entryForm(existing, presetDate){
     fIntoBed = timeField("Got into bed","intoBed",{hint:"Change this if it was before lights out."});
   }
   if (fIntoBed) card.append(fIntoBed);   /* append() would print a null */
+  /* Sleep-onset context, right under "Fell asleep": where the parent was and
+     where the child fell asleep. Carried forward from the previous night and
+     shown as one line; both optional. On a presence-focused plan (camping
+     out, bedtime fading) the parent's place is asked fresh every night. */
+  const askOnset = asksOnset();
+  const presencePlan = !!(plan && plan.protocol && PRESENCE_PROTOCOLS[plan.protocol.id]
+                          && e.date && daysFrom(plan.start, e.date) >= 0);
+  if (askOnset && !existing && prev){
+    let carried = false;
+    if (ONSET_PLACE[prev.onsetPlace]){ e.onsetPlace = prev.onsetPlace; carried = true; }
+    if (ONSET_WITH[prev.onsetWith] && !presencePlan){ e.onsetWith = prev.onsetWith; carried = true; }
+    if (carried) e.onsetCarried = true;
+  }
+  let onsetOpen = !(e.onsetWith && e.onsetPlace);
+  const onsetBox = el("div");
+  function onsetChips(question, key, labels){
+    const row = el("div",{class:"chips",role:"radiogroup","aria-label":question});
+    Object.keys(labels).forEach(code=>{
+      row.append(el("button",{type:"button",role:"radio","aria-checked": e[key] === code ? "true" : "false",
+        onclick:()=>{
+          /* picking — or tapping the carried answer again — confirms it */
+          e[key] = code; e.onsetCarried = false;
+          if (e.onsetWith && e.onsetPlace) onsetOpen = false;
+          drawOnset();
+        }}, labels[code]));
+    });
+    return [el("label",null,question), row];
+  }
+  function drawOnset(){
+    onsetBox.innerHTML = "";
+    if (!askOnset) return;
+    if (!onsetOpen){
+      onsetBox.append(el("button",{type:"button",class:"onset-line",onclick:()=>{ onsetOpen = true; drawOnset(); }},
+        el("span",null,"Fell asleep: "+ONSET_PLACE_SHORT[e.onsetPlace]+" · "+ONSET_WITH_SHORT[e.onsetWith]),
+        el("span",{class:"chg"},"✎ change")));
+      return;
+    }
+    onsetBox.append(
+      ...onsetChips("Where was a parent when your child fell asleep?","onsetWith",ONSET_WITH),
+      ...onsetChips("Where did your child fall asleep?","onsetPlace",ONSET_PLACE));
+  }
+  drawOnset();
   card.append(
     el("div",{class:"grid2"},
       fLights,
-      timeField("Fell asleep (your best guess)","onset",{defaultVal:"20:00"}),
+      timeField("Fell asleep (your best guess)","onset",{defaultVal:"20:00"})
+    ),
+    onsetBox,
+    el("div",{class:"grid2",style:"margin-top:10px"},
       timeField("Woke up for the day","wake",{defaultVal:"06:30",cascadeTo:"outOfBed"}),
       timeField("Out of bed / out of crib","outOfBed",{defaultVal:"06:30"})
     ),
@@ -1443,7 +1544,7 @@ function entryForm(existing, presetDate){
       ),
       el("label",null,"Did you go in / help?"),
       el("select",{onchange:ev=>a.help=ev.target.value},
-        Object.keys(HELP_LABELS).map(k=> el("option",{value:k, ...(a.help===k?{selected:""}:{})}, HELP_LABELS[k])))
+        helpChoices(a.help).map(k=> el("option",{value:k, ...(a.help===k?{selected:""}:{})}, HELP_LABELS[k])))
     );
   }
   function redrawAw(){
@@ -1564,6 +1665,9 @@ function entryForm(existing, presetDate){
     if (existing && existing.date !== e.date){ delete cur().entries[existing.date]; syncMarkDirty(existing.date); }
     if (!teenBand && !(existing && existing.intoBed)) delete e.intoBed;
     if (napAsk) e.napAsked = true; else delete e.napAsked;
+    if (askOnset){
+      if (e.onsetWith || e.onsetPlace) e.onsetCarried = !!e.onsetCarried; else delete e.onsetCarried;
+    }
     if (e.naps.length) delete e.noNap;
     /* silent logging time: set once on the first save, never changed by an
        edit (an edit is stamped separately) — the report uses it to say how
@@ -1898,6 +2002,8 @@ function renderSummary(){
   if (s.quality.n)
     card.append(el("div",{class:"hint",style:"margin-top:4px"},
       el("b",null,(reporter()==="teen" ? "Sleep quality (self-rated): " : "Sleep quality (parent-rated): ")), qualityLine(s)));
+  if (onsetLine(s))
+    card.append(el("div",{class:"hint",style:"margin-top:4px"}, el("b",null,"Falling asleep: "), onsetLine(s)));
   if (s.naps.asked)
     card.append(el("div",{class:"hint",style:"margin-top:4px"}, el("b",null,"Naps: "), napLine(s)));
   if (s.logging)
@@ -1996,6 +2102,7 @@ function buildTextReport(){
   L.push("  24-h total sleep:  "+dur(s.tst24.m));
   if (sri!=null) L.push("  Sleep Regularity Index: "+sri.toFixed(0)+" / 100");
   if (s.quality.n) L.push("  Sleep quality ("+(reporter()==="teen"?"self":"parent")+"-rated): "+qualityLine(s));
+  if (onsetLine(s)) L.push("  "+onsetLine(s));
   L.push("");
   L.push("SLEEP EFFICIENCY BY WEEK");
   weeklySE(s).forEach(k=> L.push("  Week "+k.w+" ("+fmtDateShort(k.from)+"–"+fmtDateShort(k.to)+", "+k.n+" night"+(k.n===1?"":"s")+"): "
@@ -2058,14 +2165,16 @@ function phase1Cols(e, c){
            b && !isNaN(b.seBed) ? b.seBed.toFixed(1) : "",
            (e.quality >= 1 && e.quality <= 5) ? e.quality : "",
            li ? li.local : "", li ? li.lag : "", reporter(),
-           ({ nap:"nap", none:"no_nap", unknown:"not_recorded", notasked:"not_asked" })[napStatus(e)] ];
+           ({ nap:"nap", none:"no_nap", unknown:"not_recorded", notasked:"not_asked" })[napStatus(e)],
+           ONSET_WITH[e.onsetWith] ? e.onsetWith : "", ONSET_PLACE[e.onsetPlace] ? e.onsetPlace : "",
+           (ONSET_WITH[e.onsetWith] || ONSET_PLACE[e.onsetPlace]) ? (e.onsetCarried ? 1 : 0) : "" ];
 }
 function buildCSV(){
   const rows = sortedEntries();
   const head = ["child_initials","date","lights_out","sleep_onset","final_wake","out_of_bed",
     "sol_min","tst_min","tib_min","se_pct","waso_min","n_awakenings","n_parent_interventions",
     "awakenings_detail","n_naps","nap_sleep_min","naps_detail",
-    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status","notes"];
+    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status","onset_parent","onset_place","onset_carried","notes"];
   const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
   const out = [head.join(",")];
   const who = cur().settings.initials || "";
@@ -2094,7 +2203,7 @@ function buildResearchCSV(){
   const head = ["record_id","redcap_repeat_instrument","redcap_repeat_instance","night_date",
     "lights_out","sleep_onset","final_wake","out_of_bed","sol_min","tst_min","tib_min","se_pct",
     "waso_min","n_awakenings","n_parent_interventions","awakenings_detail","n_naps","nap_sleep_min","naps_detail",
-    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status"];
+    "got_into_bed","tib_from_bed_min","se_from_bed_pct","sleep_quality","logged_at","logged_lag_days","reported_by","nap_status","onset_parent","onset_place","onset_carried"];
   const esc = x => { x = (x==null?"":String(x)); return /[",\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
   const out = [head.join(",")];
   if (!rows.length) return out.join("\n");
@@ -2150,6 +2259,8 @@ function buildPrintReport(){
   if (s.logging || s.naps.asked)
     box.append(el("div",{style:"margin-top:6px"}, el("b",null,"Data quality: "),
       [s.logging ? loggingLine(s.logging) : "", napLine(s)].filter(Boolean).join(" ")));
+  if (onsetLine(s))
+    box.append(el("div",{style:"margin-top:2px"}, el("b",null,"Falling asleep: "), onsetLine(s)));
   if (s.quality.n)
     box.append(el("div",{style:"margin-top:2px"},
       el("b",null,"Sleep quality ("+(reporter()==="teen"?"self":"parent")+"-rated, CSD 5-point scale): "), qualityLine(s)));

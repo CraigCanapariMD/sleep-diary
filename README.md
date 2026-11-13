@@ -143,7 +143,8 @@ One row per night: `child_initials, date, lights_out, sleep_onset, final_wake,
 out_of_bed, sol_min, tst_min, tib_min, se_pct, waso_min, n_awakenings,
 n_parent_interventions, awakenings_detail, n_naps, nap_sleep_min, naps_detail,
 got_into_bed, tib_from_bed_min, se_from_bed_pct, sleep_quality, logged_at,
-logged_lag_days, reported_by, nap_status, notes`. Times are 24-h clock; durations are
+logged_lag_days, reported_by, nap_status, onset_parent, onset_place,
+onset_carried, notes`. Times are 24-h clock; durations are
 minutes. `se_pct` is sleep efficiency from lights out; the three "from bed"
 columns are filled only for the Teenager and Young adult age groups.
 `sleep_quality` is 1 (Very poor) to 5 (Very good); `logged_at` is when the

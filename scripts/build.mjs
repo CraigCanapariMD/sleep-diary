@@ -37,12 +37,12 @@ const seed = `<script>
       return t.getFullYear()+"-"+String(t.getMonth()+1).padStart(2,"0")+"-"+String(t.getDate()).padStart(2,"0");
     }
     var demo = [
-      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"room"}],naps:[{asleep:"12:55",dur:75,woke:"14:10"}]},
+      {lo:"19:45",on:"20:10",wk:"06:20",ob:"06:35",aw:[{time:"01:30",dur:20,help:"held"}],naps:[{asleep:"12:55",dur:75,woke:"14:10"}]},
       {lo:"20:05",on:"20:50",wk:"06:05",ob:"06:25",aw:[{time:"00:45",dur:15,help:"fed"},{time:"03:20",dur:25,help:"bed"}],naps:[{asleep:"13:10",dur:70,woke:"14:20"}]},
       {lo:"19:50",on:"20:15",wk:"06:30",ob:"06:40",aw:[],naps:[{asleep:"12:50",dur:65,woke:"13:55"}]},
       {lo:"20:30",on:"21:15",wk:"06:15",ob:"06:45",aw:[{time:"02:10",dur:35,help:"bed"}],naps:[]},
       {lo:"19:40",on:"20:00",wk:"06:25",ob:"06:35",aw:[{time:"01:00",dur:10,help:"none"}],naps:[{asleep:"13:00",dur:90,woke:"14:30"}]},
-      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"room"},{time:"03:40",dur:20,help:"room"}],naps:[{asleep:"13:25",dur:50,woke:"14:15"}]},
+      {lo:"20:00",on:"20:35",wk:"05:50",ob:"06:20",aw:[{time:"23:50",dur:15,help:"soothed"},{time:"03:40",dur:20,help:"soothed"}],naps:[{asleep:"13:25",dur:50,woke:"14:15"}]},
       {lo:"19:55",on:"20:20",wk:"06:10",ob:"06:30",aw:[],naps:[{asleep:"13:05",dur:80,woke:"14:25"}]}
     ];
     /* loggedAt: the morning after the night began (k = how many days late) */
@@ -58,6 +58,10 @@ const seed = `<script>
         awakenings:d.aw, naps:d.naps, notes: i===3 ? "Skipped nap at daycare; bedtime battle" : "",
         quality:demoQ[i], loggedAt:loggedOn(date, i===2 ? 1 : 0, 6, 50), napAsked:true };
       if (!d.naps.length) entries[date].noNap = true;
+      /* where the child fell asleep / where a parent was (carried on most nights) */
+      entries[date].onsetPlace = i===3 ? "parbed" : "own";
+      entries[date].onsetWith = (i===1 || i===3 || i===5) ? "room" : "out";
+      entries[date].onsetCarried = (i===2 || i===4 || i===6);
     });
     /* A made-up teenager (pick "Teen" under Setup > Child): the teen age band
        adds "Got into bed" and the second efficiency number. ib = got into

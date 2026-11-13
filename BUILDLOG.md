@@ -466,6 +466,38 @@ naps-only first row.
 Talking point: the bug was found by explaining the feature out loud, not by
 testing it.
 
+### 2026-11-13 — Sleep-onset context and BISQ-aligned night-waking help
+From Craig's 11/13 conversation with Dr. Garay: the diary asked when a child
+fell asleep but not how, and the sleep-onset association is most of what a
+behavioral plan changes. Two optional questions now sit right under "Fell
+asleep", for every age group below Teenager: where a parent was (in bed
+with child, in the room, out of the room) and where the child fell asleep
+(own bed or crib in own room, own bed or crib in parents' room, parents'
+bed, somewhere else). The wording follows the BISQ (Sadeh 2004; BISQ-R,
+Mindell 2019), since the Consensus Sleep Diary has no equivalent. To keep
+the one-minute morning, the answers carry forward from the previous night
+and collapse to one line ("Fell asleep: in own bed · parent in the room
+✎ change"); a hidden `onsetCarried` flag records whether the saved answer
+was carried untouched or picked that morning, so the report can say
+"Parent present at sleep onset: 9 of 14 nights (confirmed 9)". On a plan
+that is about parental presence (camping out, bedtime fading) the parent's
+place is not carried: it is asked fresh every night, while the child's
+location still carries. Night-waking help now matches the BISQ too:
+"Comforted in room" is split into "Picked up, held or rocked" and "Soothed
+without picking up (pat, shush, brief check)", with the old code kept for
+display only, and "Fed" is offered under age 3 only. Numbered 1.10 in the
+roadmap because 1.9 was already the nap question. Verified in the browser
+with synthetic data: a toddler (first night open with nothing selected;
+next night carried and collapsed, saved as carried; re-tapping the carried
+answer saves it as confirmed), a camping-out plan night (presence empty,
+location preselected), a preschooler (no "Fed" offered; saved "Fed" and
+"Comforted in room" still display), and a teen diary (questions absent).
+The 21-night synthetic backup still gives SE 89.7% and 13 helped wakings.
+CACHE_VERSION 2.5.0 → 2.6.0, demo and www rebuilt, three new export
+columns, REDCap dictionary updated.
+Talking point: the cheapest question is one the app answers for you and
+lets you correct. The trick is remembering which answers were yours.
+
 ## Other tboughts
 
 Two compelling articles in NYT on 7/12/26
